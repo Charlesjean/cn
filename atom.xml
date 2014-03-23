@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[My personal blog]]></title>
+  <link href="http://Charlesjean.github.io//github/atom.xml" rel="self"/>
+  <link href="http://Charlesjean.github.io//github/"/>
+  <updated>2014-03-23T17:25:15+08:00</updated>
+  <id>http://Charlesjean.github.io//github/</id>
+  <author>
+    <name><![CDATA[Duanjin Chen]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+</feed>
