@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>基于Github托管的Octopress个人博客 - Keep it Simple and Stupid</title>
+  <title>ObjectiveC Runtime之对象模型 - Keep it Simple and Stupid</title>
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
-代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法 &hellip;">
+  <meta name="description" content="ObjectiveC Runtime的对象模型及各种runtime技术的实现原理">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://Charlesjean.github.io//github/blog/2014/03/25/personal-blog-with-github-and-octopress">
+  <link rel="canonical" href="http://Charlesjean.github.io//github/blog/2014/03/26/objectivec-runtime-learning-1">
   <link href="/cn/favicon.png" rel="icon">
   <link href="/cn/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/cn/atom.xml" rel="alternate" title="Keep it Simple and Stupid" type="application/atom+xml">
@@ -83,7 +82,7 @@
   
   <header>
     
-      <h1 class="entry-title">基于Github托管的Octopress个人博客</h1>
+      <h1 class="entry-title">ObjectiveC Runtime之对象模型</h1>
     
     
       <p class="meta">
@@ -99,65 +98,16 @@
   
 
 
-<time datetime="2014-03-25T07:33:30+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2014</time>
+<time datetime="2014-03-26T07:36:12+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>   Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
-代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法，并集成了更多可以使用的插件和自动化的功能，这个中文博客就是基于Octopress，仍然托管在Github上，不过不是以个人网页的形式，而是以project pages的形式托管.</p>
+<div class="entry-content"><p>ObjectiveC与C++同样是在C的基础上对C的扩展，但与C++相比，我认为ObjectiveC提供了更加强大的功能，比如Category，forward message, method-swiazzing, KVO以及一些runtime接口，而所有这些技术都是以ObjectiveC强大的Runtime为基础的，只有深入学习了runtime的机制，才能使我们对OC的使用更加得心应手， 并且对于大多数runtime技术，我们必须在熟悉它的底层实现机制后才能够达到正确使用的目的，否则的话你将陷入痛苦的debug之中。</p>
 
-<p>  在部署octopress的时候，会遇到不少问题，这里主要来记录一下，以备以后使用.</p>
-
-<h4>fatal：remote origin already exists</h4>
-
-<p>我的配置环境为reby 1.9.3， 在根据Octopress的<a href="http://octopress.org/docs/setup/">官方文档</a>安装主题之后，并在github上建立好新的repository之后，执行rake setup_github_pages会出错，提示</p>
-
-<pre><code>remote origin already exists
-</code></pre>
-
-<p>解决方法：将Octopress/Rakefile中357行</p>
-
-<pre><code>git remote add origin #{repo_url} 改为 git remote set-url origin #{repo_url}
-</code></pre>
-
-<h4>修改相应的配置文件</h4>
-
-<p>由于现在的中文博客是放在github的一个project上，目的是为了实现如下方式访问：username.github.io/project,所以我们需要修改一下Octopress的配置文件，来指明目录结构。</p>
-
-<ul>
-<li>_config.yml:修改url,root,destination</li>
-<li>config.rb:修改http_path,http_image_path,http_fonts_path,css_dir</li>
-</ul>
-
-
-<p>具体的改变可以参考<a href="https://github.com/Charlesjean/cn">这里</a>相对应的文件。</p>
-
-<h4>UTF-8或者GB2312编码问题</h4>
-
-<p>在执行rake generate命令之后，如果遇到 invalid byte sequence UTF-8 等错误，说明在你的文件当中有非法的编码字符，这些字符可能是由于我们使用的编辑器默认添加的一些字符，这里我们首先推荐使用nodepad++或者markdown专用的编辑器。</p>
-
-<p>解决方法：</p>
-
-<ul>
-<li>修改Ruby193\lib\ruby\gems\1.9.1\gems\jekyll-0.12.1\lib\jekyll\convertible.rb， 改变如下</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>self.content = File.read(File.join(base, name),:encoding=>"utf-8")</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>利用nodepad++找出非法字符，并将文档编码设置为utf-8 without BOM</li>
-</ul>
-
-
-<p>上面基本上列出了我在搭建过程中遇到的问题，喜欢用github搭建博客的都起码有一些编程能力，相信大家应该都可以很好地解决这些基本的问题，也欢迎大家反映自己遇到的问题，我们一起讨论解决。</p>
-
-<p>再一次感谢Github提供了如此简单，可靠，关键还是免费的搭建博客的支持:)</p>
+<p>对象模型是程序运行时对象在内存中的组织方式，由于ObjectiveC是OOP的编程语言，对象模型就涉及到<code>类的组织方式</code>,<code>继承关系的表示方法</code>，<code>成员变量与函数的存储方式</code>，<code>如何实现RTTI</code>等，因此对象模型是我们了解ObjectiveC runtime技术实现机制的基础。</p>
 </div>
 
 
@@ -180,12 +130,12 @@
   
 
 
-<time datetime="2014-03-25T07:33:30+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2014</time>
+<time datetime="2014-03-26T07:36:12+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/cn/blog/categories/octopress/'>Octopress</a>
+    <a class='category' href='/cn/blog/categories/objectivec/'>ObjectiveC</a>
   
 </span>
 
@@ -224,8 +174,8 @@ var jiathis_config = {data_track_clickback:'true'};
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/cn/blog/2014/03/25/personal-blog-with-github-and-octopress/" title="Previous Post: 基于Github托管的Octopress个人博客">&laquo; 基于Github托管的Octopress个人博客</a>
       
-        <a class="basic-alignment right" href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/" title="Next Post: ObjectiveC Runtime之对象模型">ObjectiveC Runtime之对象模型 &raquo;</a>
       
     </p>
   </footer>

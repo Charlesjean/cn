@@ -9,8 +9,7 @@
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
-代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法 &hellip;">
+  <meta name="description" content="ObjectiveC与C++同样是在C的基础上对C的扩展，但与C++相比，我认为ObjectiveC提供了更加强大的功能，比如Category，forward message, method-swiazzing, KVO以及一些runtime接口， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +79,44 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/">ObjectiveC Runtime之对象模型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-26T07:36:12+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>ObjectiveC与C++同样是在C的基础上对C的扩展，但与C++相比，我认为ObjectiveC提供了更加强大的功能，比如Category，forward message, method-swiazzing, KVO以及一些runtime接口，而所有这些技术都是以ObjectiveC强大的Runtime为基础的，只有深入学习了runtime的机制，才能使我们对OC的使用更加得心应手， 并且对于大多数runtime技术，我们必须在熟悉它的底层实现机制后才能够达到正确使用的目的，否则的话你将陷入痛苦的debug之中。</p>
+
+<p>对象模型是程序运行时对象在内存中的组织方式，由于ObjectiveC是OOP的编程语言，对象模型就涉及到<code>类的组织方式</code>,<code>继承关系的表示方法</code>，<code>成员变量与函数的存储方式</code>，<code>如何实现RTTI</code>等，因此对象模型是我们了解ObjectiveC runtime技术实现机制的基础。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -179,12 +216,17 @@
     <section>
  <h1>Archives</h1>
  <ul id="categories">
-  <li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
+  <li class='category'><a href='/cn/blog/categories/objectivec/'>ObjectiveC(1)</a></li>
+<li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
 
   </ul>
   </section><section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/">ObjectiveC Runtime之对象模型</a>
+      </li>
     
       <li class="post">
         <a href="/cn/blog/2014/03/25/personal-blog-with-github-and-octopress/">基于Github托管的Octopress个人博客</a>
@@ -212,36 +254,9 @@
 
 
 
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id; js.async = true;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
 
 
 
-  <script type="text/javascript">
-    (function() {
-      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
-      script.src = 'https://apis.google.com/js/plusone.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
-    })();
-  </script>
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
 
 
 
