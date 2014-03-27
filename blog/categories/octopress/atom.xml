@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Octopress | Keep it Simple and Stupid]]></title>
-  <link href="http://Charlesjean.github.io//github/blog/categories/octopress/atom.xml" rel="self"/>
-  <link href="http://Charlesjean.github.io//github/"/>
-  <updated>2014-03-27T21:12:17+08:00</updated>
-  <id>http://Charlesjean.github.io//github/</id>
+  <link href="http://Charlesjean.github.io//cn/blog/categories/octopress/atom.xml" rel="self"/>
+  <link href="http://Charlesjean.github.io//cn/"/>
+  <updated>2014-03-27T23:06:29+08:00</updated>
+  <id>http://Charlesjean.github.io//cn/</id>
   <author>
     <name><![CDATA[Duanjin Chen]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[基于Github托管的Octopress个人博客]]></title>
-    <link href="http://Charlesjean.github.io//github/blog/2014/03/25/personal-blog-with-github-and-octopress/"/>
+    <link href="http://Charlesjean.github.io//cn/blog/2014/03/25/personal-blog-with-github-and-octopress/"/>
     <updated>2014-03-25T07:33:30+08:00</updated>
-    <id>http://Charlesjean.github.io//github/blog/2014/03/25/personal-blog-with-github-and-octopress</id>
+    <id>http://Charlesjean.github.io//cn/blog/2014/03/25/personal-blog-with-github-and-octopress</id>
     <content type="html"><![CDATA[<p>   Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
 代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法，并集成了更多可以使用的插件和自动化的功能，这个中文博客就是基于Octopress，仍然托管在Github上，不过不是以个人网页的形式，而是以project pages的形式托管.</p>
 

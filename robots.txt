@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://Charlesjean.github.io//github/sitemap.xml 
+Sitemap: http://Charlesjean.github.io//cn/sitemap.xml 
