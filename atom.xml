@@ -4,7 +4,7 @@
   <title><![CDATA[Keep it Simple and Stupid]]></title>
   <link href="http://Charlesjean.github.io//cn/atom.xml" rel="self"/>
   <link href="http://Charlesjean.github.io//cn/"/>
-  <updated>2014-03-27T23:06:29+08:00</updated>
+  <updated>2014-03-30T13:38:40+08:00</updated>
   <id>http://Charlesjean.github.io//cn/</id>
   <author>
     <name><![CDATA[Duanjin Chen]]></name>
@@ -12,6 +12,88 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Android通过代码设置控件点击时颜色变化]]></title>
+    <link href="http://Charlesjean.github.io//cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist/"/>
+    <updated>2014-03-30T12:54:00+08:00</updated>
+    <id>http://Charlesjean.github.io//cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist</id>
+    <content type="html"><![CDATA[<p>在UI设计时，我们通常希望用户得到及时的交互反馈，例如在按钮上发生点击事件，或者textView上发生点击时，我们通常采用highlight一个控件的方法，提醒用户点击事件的发生。我们通常会通过改变控件的背景颜色或者字体的颜色来达到高亮的效果，Android提供了两个类，StateListDrawable和ColorStateList来支持这种操作。</p>
+
+<p>在Android的<a href="http://developer.android.com/guide/topics/resources/color-list-resource.html">官方文档</a>以及网上很多资料中，我们可以看到这种高亮的支持都会通过编写xml来实现的。个人认为xml的实现方式虽然简单、可复用，但是如果我们有很多种状态，或者要动态的产生不同的颜色效果，那么XML的方式会使我们的工程中增加很多的resource文件，作为一个Programmer我更喜欢通过代码来达到相同的目的。本文所用的例子比较简单，仅仅是对一个textview做了高亮设置，当用户点击textiew时，会改变其背景色和字体颜色，可以在<a href="https://github.com/Charlesjean/FragmentTest">这里</a>下载代码。关键代码如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    *Add statedrawable for targetView to display different drawable when</span>
+</span><span class='line'><span class="cm">    * view is in different state</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">addStateDrawable</span><span class="o">(</span><span class="n">View</span> <span class="n">targetView</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="n">StateListDrawable</span> <span class="n">listDrawable</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StateListDrawable</span><span class="o">();</span>
+</span><span class='line'>        <span class="c1">//add drawable used when view is pressed</span>
+</span><span class='line'>        <span class="n">listDrawable</span><span class="o">.</span><span class="na">addState</span><span class="o">(</span><span class="k">new</span> <span class="kt">int</span><span class="o">[]{</span><span class="n">android</span><span class="o">.</span><span class="na">R</span><span class="o">.</span><span class="na">attr</span><span class="o">.</span><span class="na">state_pressed</span><span class="o">},</span> <span class="k">new</span> <span class="n">ColorDrawable</span><span class="o">(</span><span class="n">Color</span><span class="o">.</span><span class="na">rgb</span><span class="o">(</span><span class="mi">106</span><span class="o">,</span><span class="mi">170</span><span class="o">,</span><span class="mi">234</span><span class="o">)));</span>
+</span><span class='line'>        <span class="c1">//show gray background for all other state</span>
+</span><span class='line'>        <span class="n">listDrawable</span><span class="o">.</span><span class="na">addState</span><span class="o">(</span><span class="n">StateSet</span><span class="o">.</span><span class="na">WILD_CARD</span><span class="o">,</span> <span class="k">new</span> <span class="n">ColorDrawable</span><span class="o">(</span><span class="n">Color</span><span class="o">.</span><span class="na">GRAY</span><span class="o">));</span>
+</span><span class='line'>        <span class="n">targetView</span><span class="o">.</span><span class="na">setBackgroundDrawable</span><span class="o">(</span><span class="n">listDrawable</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * set different text color for different state</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">addColorState</span><span class="o">(</span><span class="n">TextView</span> <span class="n">targetView</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="kt">int</span><span class="o">[][]</span> <span class="n">states</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">new</span> <span class="kt">int</span><span class="o">[]{</span><span class="n">android</span><span class="o">.</span><span class="na">R</span><span class="o">.</span><span class="na">attr</span><span class="o">.</span><span class="na">state_pressed</span><span class="o">},</span>
+</span><span class='line'>                <span class="n">StateSet</span><span class="o">.</span><span class="na">WILD_CARD</span><span class="o">};</span>
+</span><span class='line'>        <span class="kt">int</span><span class="o">[]</span> <span class="n">colors</span> <span class="o">=</span> <span class="o">{</span><span class="n">Color</span><span class="o">.</span><span class="na">RED</span><span class="o">,</span> <span class="n">Color</span><span class="o">.</span><span class="na">BLACK</span><span class="o">};</span>
+</span><span class='line'>        <span class="n">ColorStateList</span> <span class="n">coloList</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ColorStateList</span><span class="o">(</span><span class="n">states</span><span class="o">,</span> <span class="n">colors</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">targetView</span><span class="o">.</span><span class="na">setTextColor</span><span class="o">(</span><span class="n">coloList</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>StateListDrawable 提供了<code>addState</code>接口，使我们能够对应每一种状态，设置一个drawable；ColorStateList同样使我们为每一种状态指定一种字体颜色。 其中<code>StateSet.WILD_CARD</code>表示去除当前已有状态外的其他所有状态。</p>
+
+<p>所谓状态就是指随着用户的交互，View所出的不同的状态。 其中<code>state_pressed</code>表示<code>when the user is pressing down in a view.</code>,更多对状态的描述可以参考<a href="http://developer.android.com/reference/android/graphics/drawable/StateListDrawable.html">android 文档</a> (个人认为android的很多文档写得很烂，完全是对字面意思的解释，这一点与iOS根本无法相比)。</p>
+
+<h3>使用StateListDrawable和ColorStateList需要注意的事项</h3>
+
+<ul>
+<li>首先由于控件的状态是随着用户的点击等事件而改变的，所以要想使之前的代码能起作用，我们必须确保view能够接受用户的点击事件，最基本的必须用<code>setClickable(true)</code>,使控件可以点击</li>
+<li>由于android对点击等事件的传递有一定的规则，要使<code>StateListDrawable</code>和<code>ColorStateList</code>起作用，最根本上要保证view的<strong>onTouchEvent</strong>函数能够被调用到，即TouchEvent不能被其他的对象 如<code>ParentView</code>和<code>TouchListener</code>所截断。(如果view注册了EventListener那么事件就会在传给onTouchEvent()函数之前，被EventListener截断)。</li>
+</ul>
+
+
+<p>关于Android中事件的传递机制，可以参考<a href="">这篇文章</a>。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[ObjectiveC Runtime之对象模型]]></title>

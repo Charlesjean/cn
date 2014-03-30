@@ -1,0 +1,315 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Android通过代码设置控件点击时颜色变化 - Keep it Simple and Stupid</title>
+  <meta name="author" content="Duanjin Chen">
+
+  
+  <meta name="description" content="android通过代码设置View 不同状态时背景颜色和字体颜色">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist">
+  <link href="/cn/favicon.png" rel="icon">
+  <link href="/cn/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/cn/atom.xml" rel="alternate" title="Keep it Simple and Stupid" type="application/atom+xml">
+  <script src="/cn/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/cn/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-42844720-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/cn/">Keep it Simple and Stupid</a></h1>
+  
+    <h2>崇尚坚定的努力 更赞美自由的灵魂</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/cn/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Charlesjean.github.io//cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/cn/">Blog</a></li>
+  <li><a href="/cn/blog/archives">Archives</a></li>
+  <li><a href="/cn/blog/categories">Categories</a></li>
+  <li><a href="/cn/blog/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Android通过代码设置控件点击时颜色变化</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-30T12:54:00+08:00" pubdate data-updated="true">Mar 30<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>在UI设计时，我们通常希望用户得到及时的交互反馈，例如在按钮上发生点击事件，或者textView上发生点击时，我们通常采用highlight一个控件的方法，提醒用户点击事件的发生。我们通常会通过改变控件的背景颜色或者字体的颜色来达到高亮的效果，Android提供了两个类，StateListDrawable和ColorStateList来支持这种操作。</p>
+
+<p>在Android的<a href="http://developer.android.com/guide/topics/resources/color-list-resource.html">官方文档</a>以及网上很多资料中，我们可以看到这种高亮的支持都会通过编写xml来实现的。个人认为xml的实现方式虽然简单、可复用，但是如果我们有很多种状态，或者要动态的产生不同的颜色效果，那么XML的方式会使我们的工程中增加很多的resource文件，作为一个Programmer我更喜欢通过代码来达到相同的目的。本文所用的例子比较简单，仅仅是对一个textview做了高亮设置，当用户点击textiew时，会改变其背景色和字体颜色，可以在<a href="https://github.com/Charlesjean/FragmentTest">这里</a>下载代码。关键代码如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    *Add statedrawable for targetView to display different drawable when</span>
+</span><span class='line'><span class="cm">    * view is in different state</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">addStateDrawable</span><span class="o">(</span><span class="n">View</span> <span class="n">targetView</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="n">StateListDrawable</span> <span class="n">listDrawable</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StateListDrawable</span><span class="o">();</span>
+</span><span class='line'>        <span class="c1">//add drawable used when view is pressed</span>
+</span><span class='line'>        <span class="n">listDrawable</span><span class="o">.</span><span class="na">addState</span><span class="o">(</span><span class="k">new</span> <span class="kt">int</span><span class="o">[]{</span><span class="n">android</span><span class="o">.</span><span class="na">R</span><span class="o">.</span><span class="na">attr</span><span class="o">.</span><span class="na">state_pressed</span><span class="o">},</span> <span class="k">new</span> <span class="n">ColorDrawable</span><span class="o">(</span><span class="n">Color</span><span class="o">.</span><span class="na">rgb</span><span class="o">(</span><span class="mi">106</span><span class="o">,</span><span class="mi">170</span><span class="o">,</span><span class="mi">234</span><span class="o">)));</span>
+</span><span class='line'>        <span class="c1">//show gray background for all other state</span>
+</span><span class='line'>        <span class="n">listDrawable</span><span class="o">.</span><span class="na">addState</span><span class="o">(</span><span class="n">StateSet</span><span class="o">.</span><span class="na">WILD_CARD</span><span class="o">,</span> <span class="k">new</span> <span class="n">ColorDrawable</span><span class="o">(</span><span class="n">Color</span><span class="o">.</span><span class="na">GRAY</span><span class="o">));</span>
+</span><span class='line'>        <span class="n">targetView</span><span class="o">.</span><span class="na">setBackgroundDrawable</span><span class="o">(</span><span class="n">listDrawable</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * set different text color for different state</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">addColorState</span><span class="o">(</span><span class="n">TextView</span> <span class="n">targetView</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="kt">int</span><span class="o">[][]</span> <span class="n">states</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>                <span class="k">new</span> <span class="kt">int</span><span class="o">[]{</span><span class="n">android</span><span class="o">.</span><span class="na">R</span><span class="o">.</span><span class="na">attr</span><span class="o">.</span><span class="na">state_pressed</span><span class="o">},</span>
+</span><span class='line'>                <span class="n">StateSet</span><span class="o">.</span><span class="na">WILD_CARD</span><span class="o">};</span>
+</span><span class='line'>        <span class="kt">int</span><span class="o">[]</span> <span class="n">colors</span> <span class="o">=</span> <span class="o">{</span><span class="n">Color</span><span class="o">.</span><span class="na">RED</span><span class="o">,</span> <span class="n">Color</span><span class="o">.</span><span class="na">BLACK</span><span class="o">};</span>
+</span><span class='line'>        <span class="n">ColorStateList</span> <span class="n">coloList</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ColorStateList</span><span class="o">(</span><span class="n">states</span><span class="o">,</span> <span class="n">colors</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">targetView</span><span class="o">.</span><span class="na">setTextColor</span><span class="o">(</span><span class="n">coloList</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>StateListDrawable 提供了<code>addState</code>接口，使我们能够对应每一种状态，设置一个drawable；ColorStateList同样使我们为每一种状态指定一种字体颜色。 其中<code>StateSet.WILD_CARD</code>表示去除当前已有状态外的其他所有状态。</p>
+
+<p>所谓状态就是指随着用户的交互，View所出的不同的状态。 其中<code>state_pressed</code>表示<code>when the user is pressing down in a view.</code>,更多对状态的描述可以参考<a href="http://developer.android.com/reference/android/graphics/drawable/StateListDrawable.html">android 文档</a> (个人认为android的很多文档写得很烂，完全是对字面意思的解释，这一点与iOS根本无法相比)。</p>
+
+<h3>使用StateListDrawable和ColorStateList需要注意的事项</h3>
+
+<ul>
+<li>首先由于控件的状态是随着用户的点击等事件而改变的，所以要想使之前的代码能起作用，我们必须确保view能够接受用户的点击事件，最基本的必须用<code>setClickable(true)</code>,使控件可以点击</li>
+<li>由于android对点击等事件的传递有一定的规则，要使<code>StateListDrawable</code>和<code>ColorStateList</code>起作用，最根本上要保证view的<strong>onTouchEvent</strong>函数能够被调用到，即TouchEvent不能被其他的对象 如<code>ParentView</code>和<code>TouchListener</code>所截断。(如果view注册了EventListener那么事件就会在传给onTouchEvent()函数之前，被EventListener截断)。</li>
+</ul>
+
+
+<p>关于Android中事件的传递机制，可以参考<a href="">这篇文章</a>。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Duanjin Chen</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-30T12:54:00+08:00" pubdate data-updated="true">Mar 30<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/cn/blog/categories/android/'>Android</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+  
+     <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_24x24">
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a class="jiathis_button_linkedin"></a>
+	<a class="jiathis_button_douban"></a>
+	<a class="jiathis_button_googleplus"></a>
+	<a href="http://www.jiathis.com/share?uid=1908538" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1393943056255450" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1908538"></script>
+<!-- UY END -->
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/" title="Previous Post: ObjectiveC Runtime之对象模型">&laquo; ObjectiveC Runtime之对象模型</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+ <h1>Archives</h1>
+ <ul id="categories">
+  <li class='category'><a href='/cn/blog/categories/android/'>Android(1)</a></li>
+<li class='category'><a href='/cn/blog/categories/objectivec/'>ObjectiveC(1)</a></li>
+<li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
+
+  </ul>
+  </section><section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist/">Android通过代码设置控件点击时颜色变化</a>
+      </li>
+    
+      <li class="post">
+        <a href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/">ObjectiveC Runtime之对象模型</a>
+      </li>
+    
+      <li class="post">
+        <a href="/cn/blog/2014/03/25/personal-blog-with-github-and-octopress/">基于Github托管的Octopress个人博客</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Duanjin Chen -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
