@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "ObjectiveC Runtime之对象模型"
+title: "深入ObjectiveC Runtime之对象模型"
 date: 2014-03-26 07:36:12 +0800
 comments: true
 categories: ObjectiveC
