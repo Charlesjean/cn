@@ -4,7 +4,7 @@
   <title><![CDATA[Keep it Simple and Stupid]]></title>
   <link href="http://Charlesjean.github.io//cn/atom.xml" rel="self"/>
   <link href="http://Charlesjean.github.io//cn/"/>
-  <updated>2014-03-30T13:54:00+08:00</updated>
+  <updated>2014-04-03T22:44:17+08:00</updated>
   <id>http://Charlesjean.github.io//cn/</id>
   <author>
     <name><![CDATA[Duanjin Chen]]></name>
@@ -12,6 +12,56 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[深入ObjectiveC Runtime之安装Clang]]></title>
+    <link href="http://Charlesjean.github.io//cn/blog/2014/04/03/objectivec-runtime-learning-2/"/>
+    <updated>2014-04-03T21:20:48+08:00</updated>
+    <id>http://Charlesjean.github.io//cn/blog/2014/04/03/objectivec-runtime-learning-2</id>
+    <content type="html"><![CDATA[<p>在<a href="http://dj-chen.com/cn/blog/2014/03/26/objectivec-runtime-learning-1/">上一篇</a>中我们通过阅读代码，了解了ObjectiveC的内部对象模型的实现，接下来我们继续通过代码来了解ObjectiveC是如何加载一个类，以及ObjectiveC是如何实现对Category的支持的。</p>
+
+<p>我们需要利用Clang来生成一部分中间代码，帮助我们了解runtime的运行机制，因此我们首先需要安装Clang。</p>
+
+<p>Clang是LLVM的前端，可以用来编译C，C++，ObjectiveC等语言。传统的编译器通常分为三个部分，前端(frontEnd)，优化器(Optimizer)和后端(backEnd)。在编译过程中，前端主要负责词法和语法分析，将源代码转化为抽象语法树；优化器则是在前端的基础上，对得到的中间代码进行优化，使代码更加高效；后端则是将已经优化的中间代码转化为针对各自平台的机器代码。Clang则是以LLVM为后端的一款高效易用，并且与IDE结合很好的编译前端。</p>
+
+<p>我们需要自己下载LLVM与Clang源代码进行编译，步骤如下：</p>
+
+<figure class='code'><figcaption><span>lang=shell </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm 
+</span><span class='line'>
+</span><span class='line'>cd llvm/tools 
+</span><span class='line'>svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
+</span><span class='line'>cd ../..
+</span><span class='line'>
+</span><span class='line'>cd llvm/projects
+</span><span class='line'>svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
+</span><span class='line'>cd ../..
+</span><span class='line'>
+</span><span class='line'>mkdir build 
+</span><span class='line'>cd build
+</span><span class='line'>../llvm/configure
+</span><span class='line'>make</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至此，Clang 安装完毕，你可以使用<code>clang --help</code>来验证是否正确安装。</p>
+
+<p>工欲善其事必先利其器，安装Clang主要是为我们今后的学习做准备，我本身对编译器没有特别深入的学习，如果你对Clang感兴趣可以<a href="http://clang.llvm.org/">参考这里</a>。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Android通过代码设置控件点击时颜色变化]]></title>
@@ -96,7 +146,7 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[ObjectiveC Runtime之对象模型]]></title>
+    <title type="html"><![CDATA[深入ObjectiveC Runtime之对象模型]]></title>
     <link href="http://Charlesjean.github.io//cn/blog/2014/03/26/objectivec-runtime-learning-1/"/>
     <updated>2014-03-26T07:36:12+08:00</updated>
     <id>http://Charlesjean.github.io//cn/blog/2014/03/26/objectivec-runtime-learning-1</id>

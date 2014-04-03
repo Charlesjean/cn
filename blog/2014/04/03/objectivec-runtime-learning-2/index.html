@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>基于Github托管的Octopress个人博客 - Keep it Simple and Stupid</title>
+  <title>深入ObjectiveC Runtime之安装Clang - Keep it Simple and Stupid</title>
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
-代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法 &hellip;">
+  <meta name="description" content="深入学习ObjectiveC Runtime的实现与技术">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/03/25/personal-blog-with-github-and-octopress">
+  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/04/03/objectivec-runtime-learning-2">
   <link href="/cn/favicon.png" rel="icon">
   <link href="/cn/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/cn/atom.xml" rel="alternate" title="Keep it Simple and Stupid" type="application/atom+xml">
@@ -83,7 +82,7 @@
   
   <header>
     
-      <h1 class="entry-title">基于Github托管的Octopress个人博客</h1>
+      <h1 class="entry-title">深入ObjectiveC Runtime之安装Clang</h1>
     
     
       <p class="meta">
@@ -99,65 +98,55 @@
   
 
 
-<time datetime="2014-03-25T07:33:30+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2014</time>
+<time datetime="2014-04-03T21:20:48+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>   Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
-代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法，并集成了更多可以使用的插件和自动化的功能，这个中文博客就是基于Octopress，仍然托管在Github上，不过不是以个人网页的形式，而是以project pages的形式托管.</p>
+<div class="entry-content"><p>在<a href="http://dj-chen.com/cn/blog/2014/03/26/objectivec-runtime-learning-1/">上一篇</a>中我们通过阅读代码，了解了ObjectiveC的内部对象模型的实现，接下来我们继续通过代码来了解ObjectiveC是如何加载一个类，以及ObjectiveC是如何实现对Category的支持的。</p>
 
-<p>  在部署octopress的时候，会遇到不少问题，这里主要来记录一下，以备以后使用.</p>
+<p>我们需要利用Clang来生成一部分中间代码，帮助我们了解runtime的运行机制，因此我们首先需要安装Clang。</p>
 
-<h4>fatal：remote origin already exists</h4>
+<p>Clang是LLVM的前端，可以用来编译C，C++，ObjectiveC等语言。传统的编译器通常分为三个部分，前端(frontEnd)，优化器(Optimizer)和后端(backEnd)。在编译过程中，前端主要负责词法和语法分析，将源代码转化为抽象语法树；优化器则是在前端的基础上，对得到的中间代码进行优化，使代码更加高效；后端则是将已经优化的中间代码转化为针对各自平台的机器代码。Clang则是以LLVM为后端的一款高效易用，并且与IDE结合很好的编译前端。</p>
 
-<p>我的配置环境为reby 1.9.3， 在根据Octopress的<a href="http://octopress.org/docs/setup/">官方文档</a>安装主题之后，并在github上建立好新的repository之后，执行rake setup_github_pages会出错，提示</p>
+<p>我们需要自己下载LLVM与Clang源代码进行编译，步骤如下：</p>
 
-<pre><code>remote origin already exists
-</code></pre>
-
-<p>解决方法：将Octopress/Rakefile中357行</p>
-
-<pre><code>git remote add origin #{repo_url} 改为 git remote set-url origin #{repo_url}
-</code></pre>
-
-<h4>修改相应的配置文件</h4>
-
-<p>由于现在的中文博客是放在github的一个project上，目的是为了实现如下方式访问：username.github.io/project,所以我们需要修改一下Octopress的配置文件，来指明目录结构。</p>
-
-<ul>
-<li>_config.yml:修改url,root,destination</li>
-<li>config.rb:修改http_path,http_image_path,http_fonts_path,css_dir</li>
-</ul>
-
-
-<p>具体的改变可以参考<a href="https://github.com/Charlesjean/cn">这里</a>相对应的文件。</p>
-
-<h4>UTF-8或者GB2312编码问题</h4>
-
-<p>在执行rake generate命令之后，如果遇到 invalid byte sequence UTF-8 等错误，说明在你的文件当中有非法的编码字符，这些字符可能是由于我们使用的编辑器默认添加的一些字符，这里我们首先推荐使用nodepad++或者markdown专用的编辑器。</p>
-
-<p>解决方法：</p>
-
-<ul>
-<li>修改Ruby193\lib\ruby\gems\1.9.1\gems\jekyll-0.12.1\lib\jekyll\convertible.rb， 改变如下</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>self.content = File.read(File.join(base, name),:encoding=>"utf-8")</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span>lang=shell </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm 
+</span><span class='line'>
+</span><span class='line'>cd llvm/tools 
+</span><span class='line'>svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
+</span><span class='line'>cd ../..
+</span><span class='line'>
+</span><span class='line'>cd llvm/projects
+</span><span class='line'>svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
+</span><span class='line'>cd ../..
+</span><span class='line'>
+</span><span class='line'>mkdir build 
+</span><span class='line'>cd build
+</span><span class='line'>../llvm/configure
+</span><span class='line'>make</span></code></pre></td></tr></table></div></figure>
 
 
-<ul>
-<li>利用nodepad++找出非法字符，并将文档编码设置为utf-8 without BOM</li>
-</ul>
+<p>至此，Clang 安装完毕，你可以使用<code>clang --help</code>来验证是否正确安装。</p>
 
-
-<p>上面基本上列出了我在搭建过程中遇到的问题，喜欢用github搭建博客的都起码有一些编程能力，相信大家应该都可以很好地解决这些基本的问题，也欢迎大家反映自己遇到的问题，我们一起讨论解决。</p>
-
-<p>再一次感谢Github提供了如此简单，可靠，关键还是免费的搭建博客的支持:)</p>
+<p>工欲善其事必先利其器，安装Clang主要是为我们今后的学习做准备，我本身对编译器没有特别深入的学习，如果你对Clang感兴趣可以<a href="http://clang.llvm.org/">参考这里</a>。</p>
 </div>
 
 
@@ -180,12 +169,12 @@
   
 
 
-<time datetime="2014-03-25T07:33:30+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2014</time>
+<time datetime="2014-04-03T21:20:48+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/cn/blog/categories/octopress/'>Octopress</a>
+    <a class='category' href='/cn/blog/categories/objectivec/'>ObjectiveC</a>
   
 </span>
 
@@ -224,8 +213,8 @@ var jiathis_config = {data_track_clickback:'true'};
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist/" title="Previous Post: Android通过代码设置控件点击时颜色变化">&laquo; Android通过代码设置控件点击时颜色变化</a>
       
-        <a class="basic-alignment right" href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/" title="Next Post: 深入ObjectiveC Runtime之对象模型">深入ObjectiveC Runtime之对象模型 &raquo;</a>
       
     </p>
   </footer>
