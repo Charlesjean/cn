@@ -1,16 +1,16 @@
 // Here you can easily change your sites's color scheme.
 // To give it a try, uncomment some of the lines below rebuild your blog, and see how it works.
 // If you need a handy color picker try http://hslpicker.com
-
-//$header-bg: #263347;
-//$subtitle-color: lighten($header-bg, 58);
-//$nav-bg: desaturate(lighten(#8fc17a, 18), 5);
+//3d8fb8
+$header-bg: #3d8fb8;
+$subtitle-color: lighten($header-bg, 58);
+$nav-bg: desaturate(lighten(#3d8fb8, 18), 5);
 //$nav-bg-front: image-url('noise.png');
 //$nav-bg-back: linear-gradient(lighten($nav-bg, 8), $nav-bg, darken($nav-bg, 11));
 //$sidebar-bg: desaturate(#eceff5, 8);
 //$sidebar-link-color: saturate(#526f9a, 10);
 //$sidebar-link-color-hover: darken(#7ab662, 9);
-//$footer-bg: #ccc !default;
+$footer-bg: lighten(#3d8fb8, 18) !default;
 //$footer-bg-front: image-url('noise.png');
 //$footer-bg-back: linear-gradient(lighten($footer-bg, 8), $footer-bg, darken($footer-bg, 11));
 
@@ -41,3 +41,16 @@
 //$pre-bg: $base03;
 //$pre-border: darken($base02, 5);
 //$pre-color: $base1;
+html{
+	background: #fff !important;
+}
+body{
+> div{
+	background: #fff !important;
+	> div{
+	background: #fff !important;
+	}
+	}
+	}
+$main-bg: #ffffff !default;
+$page-bg: #ffffff !default;
