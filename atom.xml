@@ -4,7 +4,7 @@
   <title><![CDATA[Keep it Simple and Stupid]]></title>
   <link href="http://Charlesjean.github.io//cn/atom.xml" rel="self"/>
   <link href="http://Charlesjean.github.io//cn/"/>
-  <updated>2014-04-05T21:27:39+08:00</updated>
+  <updated>2014-04-10T22:01:09+08:00</updated>
   <id>http://Charlesjean.github.io//cn/</id>
   <author>
     <name><![CDATA[Duanjin Chen]]></name>
@@ -14,7 +14,100 @@
 
   
   <entry>
-    <title type="html"><![CDATA[深入ObjectiveC Runtime之安装Clang]]></title>
+    <title type="html"><![CDATA[深入ObjectiveC Runtime之(三)NSObject类与NSObject接口]]></title>
+    <link href="http://Charlesjean.github.io//cn/blog/2014/04/09/objectivec-runtime-learning-3/"/>
+    <updated>2014-04-09T20:05:43+08:00</updated>
+    <id>http://Charlesjean.github.io//cn/blog/2014/04/09/objectivec-runtime-learning-3</id>
+    <content type="html"><![CDATA[<p>在学习ObjectiveC Runtime代码是你会发现，在系统中除了一个名为NSObject的类之外，还存在一个同样名字为NSObject的接口（Protocol），这不禁让我们有疑问，NSObject接口存在的原因是什么，同样的名字难道不会有冲突吗？</p>
+
+<p>我们先看一下接口 NSObject的代码</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@protocol</span> <span class="nc">NSObject</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isEqual:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">NSUInteger</span><span class="p">)</span><span class="nf">hash</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nf">superclass</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nf">class</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">self</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="k">struct</span> <span class="n">_NSZone</span> <span class="o">*</span><span class="p">)</span><span class="nf">zone</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">performSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">performSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span> <span class="nf">withObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">performSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span> <span class="nf">withObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object1</span> <span class="nf">withObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object2</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isProxy</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isKindOfClass:</span><span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nv">aClass</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isMemberOfClass:</span><span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nv">aClass</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">conformsToProtocol:</span><span class="p">(</span><span class="n">Protocol</span> <span class="o">*</span><span class="p">)</span><span class="nv">aProtocol</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">respondsToSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">retain</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">oneway</span> <span class="kt">void</span><span class="p">)</span><span class="nf">release</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">autorelease</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">NSUInteger</span><span class="p">)</span><span class="nf">retainCount</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">description</span><span class="p">;</span>
+</span><span class='line'><span class="k">@optional</span>
+</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">debugDescription</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们平时使用的runtime类型判断接口，以及<code>performSelector</code>等都定义在以NSObject为名的Protocol当中。这些方法在我们平时的编程过程中被大量使用，基本上所有的类都可以respond to这些方法，而我们的类都是继承自NSObject的，他们为什么会有NSObject Protocol当中声明的方法呢，唯一的解释就是<code>Class NSObject 实现了 NSObject Protocol</code>，在runtime的代码中我们也可以得到印证</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">NSObject</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Class</span> <span class="n">isa</span>  <span class="n">OBJC_ISA_AVAILABILITY</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>实际上在ObjectiveC中，interface和protocol的名字是可以相同的，因为在语言中不存在任何可以产生歧义的语法，也就是说interface和protocol使用于完全不同的语法环境，因此可以有相同的名字。</p>
+
+<p>我们还可以进一步思考NSObject Protocol存在的必要性。在JAVA中，所有的类都是java.lang.Object的子类（Object是唯一的ROOT Class），而ObjectiveC中并不是所有的类都是NSObject的子类（有些类继承自NSProxy而不是NSObject）。因此在ObjectiveC中，为了给所有的类提供某些通用的接口，就必须保证所有的ROOT Class，都去实现某一个Protocol，NSObject Protocol就因此诞生，即<code>所有的root class，包括NSObject和NSProxy都会实现NSObject Protocol</code>， 我想这才是NSObject Protocol存在的根本原因。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[深入ObjectiveC Runtime之（二）安装Clang]]></title>
     <link href="http://Charlesjean.github.io//cn/blog/2014/04/03/objectivec-runtime-learning-2/"/>
     <updated>2014-04-03T21:20:48+08:00</updated>
     <id>http://Charlesjean.github.io//cn/blog/2014/04/03/objectivec-runtime-learning-2</id>
