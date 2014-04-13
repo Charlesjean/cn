@@ -9,7 +9,7 @@
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="在学习ObjectiveC Runtime代码是你会发现，在系统中除了一个名为NSObject的类之外，还存在一个同样名字为NSObject的接口（Protocol），这不禁让我们有疑问，NSObject接口存在的原因是什么，同样的名字难道不会有冲突吗？ 我们先看一下接口 NSObject的代码 &hellip;">
+  <meta name="description" content="Move语义是C++11中为了提高性能，减少临时对象的构造和析构而引入的新的语义环境，和Move语义相关的还有右值引用(rvalue reference)，这里我们总结一下，Move语义的引入带来了哪些好处，当我们定义一个类时需要注意什么。 Move语义及移动构造函数 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,209 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/cn/blog/2014/04/13/c-plus-plus-11-move-semantic/">C++11之Move 构造函数和Move 赋值操作符</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-13T11:19:04+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Move语义是C++11中为了提高性能，减少临时对象的构造和析构而引入的新的语义环境，和Move语义相关的还有右值引用(rvalue reference)，这里我们总结一下，Move语义的引入带来了哪些好处，当我们定义一个类时需要注意什么。</p>
+
+<h4>Move语义及移动构造函数</h4>
+
+<p>我们通过代码来看一下Move语义出现的原因及必要性。</p>
+
+<p>假设我们有如下的类定义，TestClass类中含有一个<code>Char*</code>类型的成员变量，为了实现内存的管理，按照<code>The Big Three</code>原则，我们需要为这个类定义<code>拷贝构造函数</code>，<code>析构函数</code>和<code>赋值操作符</code>。类的代码如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">TestClass</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>  <span class="n">TestClass</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">_array</span><span class="p">)</span> <span class="o">:</span> <span class="n">array_pointer</span><span class="p">(</span><span class="n">_array</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Constructor Invoked&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="o">~</span><span class="n">TestClass</span><span class="p">(){</span>
+</span><span class='line'>      <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Destructor is InVoked&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">delete</span> <span class="n">array_pointer</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">TestClass</span><span class="p">(</span><span class="k">const</span> <span class="n">TestClass</span><span class="o">&amp;</span> <span class="n">rhs</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Copy Constructor is Invoked&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">size_t</span> <span class="n">len</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">-&gt;</span><span class="n">array_pointer</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">len</span><span class="p">];</span>
+</span><span class='line'>      <span class="n">memcpy</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">array_pointer</span><span class="p">,</span> <span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">private</span><span class="o">:</span>
+</span><span class='line'>  <span class="kt">char</span><span class="o">*</span> <span class="n">array_pointer</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中<code>拷贝构造函数</code>的语义为：当我们采用一个对象A去构造新的对象时，拷贝构造函数会被自动调用。拷贝构造函数的参数为<code>const TestClass&amp; rhs</code>决定了我们无法改变rhs的值。在下列情况下会使用拷贝构造函数：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">TestClass</span> <span class="n">A</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+</span><span class='line'><span class="n">TestClass</span> <span class="n">B</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于对象A的构造，拷贝构造函数完全符合我们的期望，因为我们使用了一个    <code>lvalue</code>来构造A，我们不希望改变<code>x</code>的内容，以便以后继续保持对<code>x</code>的引用。但是对于对象B的构造过程，拷贝构造函数明显做了多余的事情：</p>
+
+<blockquote><p>  我们采用<code>rvalue</code>即一个临时变量来构造B，在B构造之后，临时变量会被销毁，我们不需要保持对这个临时变量的引用。因此，我们完全可以直接将构造函数中参数<code>rhs</code>的<code>array_pointer</code>指针直接给B，这样一来就可以省下B中<code>array_pointer</code>的初始化以及临时变量中<code>array_pointer</code>的释放过程。</p></blockquote>
+
+<p>我们通过代码来进一步理解：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>      <span class="k">this</span><span class="o">-&gt;</span><span class="n">array_pointer</span> <span class="o">=</span> <span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span><span class="p">;</span><span class="c1">//directly assign pointer in rhs to the new object</span>
+</span><span class='line'>      <span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span> <span class="o">=</span> <span class="n">nullptr</span><span class="p">;</span><span class="c1">//do not let rhs refer to the raw pointer any more</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>以上代码就是我们所说的<code>Move Semantic</code>，当使用<code>rvalue</code>去构造或者给一个对象赋值时,我们可以直接将<code>rvalue</code>中的指针直接转移给新的对象，从而节省新的内存分配等的开销,由于<code>rvalue</code>在新的对象构造之后会被自动释放，所以我们没有必要保留对它的引用。</p>
+
+<p>在C++11之前我们无法将上面的代码块写入构造函数中，因为我们无法区分<code>rhs</code>是不是<code>rvalue</code>。C++11中引入了右值引用，允许我们实现针对右值引用的函数重载（只在参数类型 指定右值即可），代码如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>  <span class="c1">//This is move consturctor, transfer ownership</span>
+</span><span class='line'>  <span class="n">TestClass</span><span class="p">(</span><span class="n">TestClass</span><span class="o">&amp;&amp;</span> <span class="n">rhs</span><span class="p">){</span><span class="c1">//notice there are two &#39;&amp;&#39; symbols</span>
+</span><span class='line'>      <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Move Construct is Invoked&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">-&gt;</span><span class="n">array_pointer</span> <span class="o">=</span> <span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span> <span class="o">=</span> <span class="n">nullptr</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面就是移动构造函数（Move Constructor）,函数参数为<code>TestClass&amp;&amp;</code>，表明函数接受一个<code>rvalue</code>。</p>
+
+<p>实现移动构造函数应注意两点:</p>
+
+<ul>
+<li>参数类型为TestClass&amp;&amp;</li>
+<li>需要取消rhs中指针对原地址的引用（防止在rhs析构时导致原变量被释放）</li>
+</ul>
+
+
+<h4>移动赋值运算符</h4>
+
+<p>了解了移动构造函数，很自然的想到在对对象进行赋值运算时同样存在<code>rvalue</code>的问题</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">A</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
+</span><span class='line'><span class="n">B</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同样我们可以重载移动赋值操作符如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>  <span class="c1">//move assignment</span>
+</span><span class='line'>  <span class="n">TestClass</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">TestClass</span><span class="o">&amp;&amp;</span> <span class="n">rhs</span><span class="p">){</span><span class="c1">//(1)</span>
+</span><span class='line'>      <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Assign operator and Transfer ownership&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">array_pointer</span><span class="p">,</span> <span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="c1">//assignment</span>
+</span><span class='line'>  <span class="n">TestClass</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">TestClass</span><span class="o">&amp;</span> <span class="n">rhs</span><span class="p">){</span><span class="c1">//(2)</span>
+</span><span class='line'>      <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Assign operator&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">TestClass</span> <span class="n">tmp</span><span class="p">(</span><span class="n">rhs</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">array_pointer</span><span class="p">,</span> <span class="n">tmp</span><span class="p">.</span><span class="n">array_pointer</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在我们重载了两个<code>operator=</code>操作符，当我们对<code>A</code>赋值时,(2)会被调用，当我们对<code>B</code>赋值时，(1)会被调用。</p>
+
+<p>在c++11中你可以采用上述做法，重载两个对应复制操作符的函数，也可以使用下面更简洁的方法(unifying assignment operator)：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>  <span class="n">TestClass</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">TestClass</span> <span class="n">rhs</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Assign operator and Transfer ownership&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>      <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">array_pointer</span><span class="p">,</span> <span class="n">rhs</span><span class="p">.</span><span class="n">array_pointer</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">return</span> <span class="o">*</span><span class="k">this</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们把函数的参数改成按值传递的形式（），这样做的好处有：
+*   如果我们是以一个<code>lvalue</code>对对象进行赋值，那么系统会自动构建一个对象的拷贝作为函数的参数（因为是按值传递的）
+*   如果我们是以一个<code>rvalue</code>对对象进行赋值，那么这个函数的表现会像（1）一样。</p>
+
+<p>关于赋值操作符的重载可以参考<a href="http://en.wikibooks.org/wiki/More_C++_Idioms/Copy-and-swap">这篇文章</a>。</p>
+
+<p>这里有一个<a href="https://github.com/Charlesjean/C11TestProjects">demo project</a>,有兴趣的话可以下来看一下代码。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -682,6 +885,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/cn/blog/2014/04/13/c-plus-plus-11-move-semantic/">C++11之Move 构造函数和Move 赋值操作符</a>
+      </li>
+    
+      <li class="post">
         <a href="/cn/blog/2014/04/09/objectivec-runtime-learning-3/">深入ObjectiveC Runtime之(三)NSObject类与NSObject接口</a>
       </li>
     
@@ -695,10 +902,6 @@
     
       <li class="post">
         <a href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/">深入ObjectiveC Runtime之对象模型</a>
-      </li>
-    
-      <li class="post">
-        <a href="/cn/blog/2014/03/25/personal-blog-with-github-and-octopress/">基于Github托管的Octopress个人博客</a>
       </li>
     
   </ul>
