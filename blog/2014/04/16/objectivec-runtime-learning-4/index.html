@@ -1,0 +1,576 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>深入ObjectiveC Runtime之(四)类的加载与Category的实现 - Keep it Simple and Stupid</title>
+  <meta name="author" content="Duanjin Chen">
+
+  
+  <meta name="description" content="源代码经过编译、连接转化为机器码，在运行时又由runtime加载入内存，因此编译器、连接器和runtime在某种程度上说是协同工作的。在编译过程中，编译器会首先将源代码中的每一个类转换为汇编代码，每一个类的不同的变量，方法等都会被放在汇编代码的不同段当中，然后再将汇编代码转化为机器语言即二进制。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/04/16/objectivec-runtime-learning-4">
+  <link href="/cn/favicon.png" rel="icon">
+  <link href="/cn/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="" rel="alternate" title="Keep it Simple and Stupid" type="application/atom+xml">
+  <script src="/cn/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/cn/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-42844720-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/cn/">Keep it Simple and Stupid</a></h1>
+  
+    <h2>崇尚坚定的努力 更赞美自由的灵魂</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:Charlesjean.github.io//cn" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/cn/">Blog</a></li>
+  <li><a href="/cn/blog/archives">Archives</a></li>
+  <li><a href="/cn/blog/categories">Categories</a></li>
+  <li><a href="/cn/blog/about">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">深入ObjectiveC Runtime之(四)类的加载与Category的实现</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-16T21:41:24+08:00" pubdate data-updated="true">Apr 16<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>源代码经过编译、连接转化为机器码，在运行时又由runtime加载入内存，因此编译器、连接器和runtime在某种程度上说是协同工作的。在编译过程中，编译器会首先将源代码中的每一个类转换为汇编代码，每一个类的不同的变量，方法等都会被放在汇编代码的不同段当中，然后再将汇编代码转化为机器语言即二进制。为了确保runtime能够对程序进行解析加载，编译器和runtime之间必须有某种约定，以实现runtime对类信息的加载。
+例如对于如下的代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="cp">#import &lt;objc/Object.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">MySuperClass</span>: <span class="nc">Object</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">myMessage1</span><span class="p">;</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">MySuperClass</span>
+</span><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">myMessage1</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">MyClass</span>: <span class="nc">MySuperClass</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">myMessage2</span><span class="p">;</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">MyClass</span>
+</span><span class='line'><span class="k">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="nf">myMessage2</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>编译成的汇编代码的一部分(无须细读汇编代码)：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'>  <span class="p">.</span><span class="n">file</span>   <span class="s">&quot;test.m&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">L_OBJC_CLASS_NAME_</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;</span><span class="se">\01</span><span class="s">L_OBJC_CLASS_NAME_&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">section</span>    <span class="s">&quot;__TEXT,__objc_classname,cstring_literals&quot;</span><span class="p">,</span><span class="s">&quot;aw&quot;</span><span class="p">,</span><span class="err">@</span><span class="n">progbits</span>
+</span><span class='line'><span class="nl">L_OBJC_CLASS_NAME_:</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">asciz</span>   <span class="s">&quot;MySuperClass&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">L_OBJC_CLASS_NAME_</span><span class="p">,</span> <span class="mi">13</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">l_OBJC_METACLASS_RO_$_MySuperClass</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;</span><span class="se">\01</span><span class="s">l_OBJC_METACLASS_RO_$_MySuperClass&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">section</span>    <span class="s">&quot;__DATA, __objc_const&quot;</span><span class="p">,</span><span class="s">&quot;aw&quot;</span><span class="p">,</span><span class="err">@</span><span class="n">progbits</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">align</span>  <span class="mi">8</span>
+</span><span class='line'><span class="nl">l_OBJC_METACLASS_RO_$_MySuperClass:</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">1</span>                       <span class="err">#</span> <span class="mh">0x1</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">40</span>                      <span class="err">#</span> <span class="mh">0x28</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">40</span>                      <span class="err">#</span> <span class="mh">0x28</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">zero</span>   <span class="mi">4</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">L_OBJC_CLASS_NAME_</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">l_OBJC_METACLASS_RO_$_MySuperClass</span><span class="p">,</span> <span class="mi">72</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">OBJC_METACLASS_$_MySuperClass</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;OBJC_METACLASS_$_MySuperClass&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">section</span>    <span class="s">&quot;__DATA, __objc_data&quot;</span><span class="p">,</span><span class="s">&quot;aw&quot;</span><span class="p">,</span><span class="err">@</span><span class="n">progbits</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">globl</span>  <span class="n">OBJC_METACLASS_$_MySuperClass</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">align</span>  <span class="mi">8</span>
+</span><span class='line'><span class="nl">OBJC_METACLASS_$_MySuperClass:</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">OBJC_METACLASS_$_Object</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">OBJC_METACLASS_$_Object</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">_objc_empty_cache</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">_objc_empty_vtable</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">l_OBJC_METACLASS_RO_$_MySuperClass</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">OBJC_METACLASS_$_MySuperClass</span><span class="p">,</span> <span class="mi">40</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">L_OBJC_METH_VAR_NAME_</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;</span><span class="se">\01</span><span class="s">L_OBJC_METH_VAR_NAME_&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">section</span>    <span class="s">&quot;__TEXT,__objc_methname,cstring_literals&quot;</span><span class="p">,</span><span class="s">&quot;aw&quot;</span><span class="p">,</span><span class="err">@</span><span class="n">progbits</span>
+</span><span class='line'><span class="nl">L_OBJC_METH_VAR_NAME_:</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">asciz</span>   <span class="s">&quot;myMessage1&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">L_OBJC_METH_VAR_NAME_</span><span class="p">,</span> <span class="mi">11</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">L_OBJC_METH_VAR_TYPE_</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;</span><span class="se">\01</span><span class="s">L_OBJC_METH_VAR_TYPE_&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">section</span>    <span class="s">&quot;__TEXT,__objc_methtype,cstring_literals&quot;</span><span class="p">,</span><span class="s">&quot;aw&quot;</span><span class="p">,</span><span class="err">@</span><span class="n">progbits</span>
+</span><span class='line'><span class="nl">L_OBJC_METH_VAR_TYPE_:</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">asciz</span>   <span class="s">&quot;v16@0:8&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">L_OBJC_METH_VAR_TYPE_</span><span class="p">,</span> <span class="mi">8</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">l_OBJC_$_INSTANCE_METHODS_MySuperClass</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;</span><span class="se">\01</span><span class="s">l_OBJC_$_INSTANCE_METHODS_MySuperClass&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">section</span>    <span class="s">&quot;__DATA, __objc_const&quot;</span><span class="p">,</span><span class="s">&quot;aw&quot;</span><span class="p">,</span><span class="err">@</span><span class="n">progbits</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">align</span>  <span class="mi">8</span>
+</span><span class='line'><span class="nl">l_OBJC_$_INSTANCE_METHODS_MySuperClass:</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">24</span>                      <span class="err">#</span> <span class="mh">0x18</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">1</span>                       <span class="err">#</span> <span class="mh">0x1</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">L_OBJC_METH_VAR_NAME_</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">L_OBJC_METH_VAR_TYPE_</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">_2D__5B_MySuperClass_20_myMessage1_5D_</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">l_OBJC_$_INSTANCE_METHODS_MySuperClass</span><span class="p">,</span> <span class="mi">32</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">l_OBJC_CLASS_RO_$_MySuperClass</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;</span><span class="se">\01</span><span class="s">l_OBJC_CLASS_RO_$_MySuperClass&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">align</span>  <span class="mi">8</span>
+</span><span class='line'><span class="nl">l_OBJC_CLASS_RO_$_MySuperClass:</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">0</span>                       <span class="err">#</span> <span class="mh">0x0</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">8</span>                       <span class="err">#</span> <span class="mh">0x8</span>
+</span><span class='line'>    <span class="p">.</span><span class="kt">long</span>   <span class="mi">8</span>                       <span class="err">#</span> <span class="mh">0x8</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">zero</span>   <span class="mi">4</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">L_OBJC_CLASS_NAME_</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">l_OBJC_$_INSTANCE_METHODS_MySuperClass</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="mi">0</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">l_OBJC_CLASS_RO_$_MySuperClass</span><span class="p">,</span> <span class="mi">72</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">.</span><span class="n">type</span>   <span class="n">OBJC_CLASS_$_MySuperClass</span><span class="p">,</span><span class="err">@</span><span class="n">object</span> <span class="err">#</span> <span class="s">@&quot;OBJC_CLASS_$_MySuperClass&quot;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">section</span>    <span class="s">&quot;__DATA, __objc_data&quot;</span><span class="p">,</span><span class="s">&quot;aw&quot;</span><span class="p">,</span><span class="err">@</span><span class="n">progbits</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">globl</span>  <span class="n">OBJC_CLASS_$_MySuperClass</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">align</span>  <span class="mi">8</span>
+</span><span class='line'><span class="nl">OBJC_CLASS_$_MySuperClass:</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">OBJC_METACLASS_$_MySuperClass</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">OBJC_CLASS_$_Object</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">_objc_empty_cache</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">_objc_empty_vtable</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">quad</span>   <span class="n">l_OBJC_CLASS_RO_$_MySuperClass</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">size</span>   <span class="n">OBJC_CLASS_$_MySuperClass</span><span class="p">,</span> <span class="mi">40</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在编译得到的汇编代码中，不同的代码段对应ObjectiveC runtime中不同类型的数据结构。</p>
+
+<p><code>main</code>函数通常是我们认为的程序的入口，但是实际上，在进程刚刚开始执行时，<code>_objc_init</code>函数会在<code>main</code>函数之前被调用，在<code>_objc_init</code>函数中我们看到如下语句</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">dyld_register_image_state_change_handler</span><span class="p">(</span><span class="n">dyld_image_state_bound</span><span class="p">,</span>
+</span><span class='line'>                                             <span class="mi">1</span><span class="cm">/*batch*/</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">map_images</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>即在<code>_objc_init</code>时，runtime调用了<code>map_images</code>方法，<code>map_images</code>中又调用了<code>map_images_nolock</code>方法，继续下去我们会发现，程序调用了名为<code>realizeAllClasses</code>的方法，并最终在<code>static Class realizeClass(Class cls)</code>中具体实现了对某一个类的加载。</p>
+
+<p>在<code>static Class realizeClass(Class cls)</code>中，系统实现了对类<code>cls</code>的初始化，包括为类对象分配空间，生成类的函数列表等。在这里我们以Category的实现为例。</p>
+
+<p>我们可以在<code>static void methodizeClass(Class cls)</code>方法中看到对<code>static void attachCategoryMethods</code>的调用，这个方法就是我们要找的category的实现原理所在：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">static</span> <span class="kt">void</span>
+</span><span class='line'><span class="nf">attachCategoryMethods</span><span class="p">(</span><span class="n">Class</span> <span class="n">cls</span><span class="p">,</span> <span class="n">category_list</span> <span class="o">*</span><span class="n">cats</span><span class="p">,</span> <span class="n">bool</span> <span class="n">flushCaches</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">cats</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">PrintReplacedMethods</span><span class="p">)</span> <span class="n">printReplacements</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">cats</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">bool</span> <span class="n">isMeta</span> <span class="o">=</span> <span class="n">cls</span><span class="o">-&gt;</span><span class="n">isMetaClass</span><span class="p">();</span>
+</span><span class='line'>    <span class="n">method_list_t</span> <span class="o">**</span><span class="n">mlists</span> <span class="o">=</span> <span class="p">(</span><span class="n">method_list_t</span> <span class="o">**</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">_malloc_internal</span><span class="p">(</span><span class="n">cats</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">mlists</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">// Count backwards through cats to get newest categories first</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">mcount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">cats</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">;</span>
+</span><span class='line'>    <span class="kt">BOOL</span> <span class="n">fromBundle</span> <span class="o">=</span> <span class="n">NO</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">method_list_t</span> <span class="o">*</span><span class="n">mlist</span> <span class="o">=</span> <span class="n">cat_method_list</span><span class="p">(</span><span class="n">cats</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">cat</span><span class="p">,</span> <span class="n">isMeta</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="n">mlist</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">mlists</span><span class="p">[</span><span class="n">mcount</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">mlist</span><span class="p">;</span>
+</span><span class='line'>            <span class="n">fromBundle</span> <span class="o">|=</span> <span class="n">cats</span><span class="o">-&gt;</span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">fromBundle</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">attachMethodLists</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">mlists</span><span class="p">,</span> <span class="n">mcount</span><span class="p">,</span> <span class="n">NO</span><span class="p">,</span> <span class="n">fromBundle</span><span class="p">,</span> <span class="n">flushCaches</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">_free_internal</span><span class="p">(</span><span class="n">mlists</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>函数第一个参数为当前正加载的类，第二个参数为对应类的所有的category的实现，在方法中，程序遍历了所有的category，将所有的在category中定义的函数，放在<code>mlists</code>中，然后利用<code>attachMethodLists</code>方法将category中添加的方法整合到类的method list当中，从而实现了category这一语言特性。</p>
+
+<p>代码并不复杂，关键是我们在月的的过程中要慢慢找到函数间的调用层次，类加载这一部分的函数调用层次如下所示：
+<img src="https://raw.githubusercontent.com/Charlesjean/cn/master/source/_posts/Category.png" alt="" /></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Duanjin Chen</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-16T21:41:24+08:00" pubdate data-updated="true">Apr 16<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/cn/blog/categories/objectivec/'>ObjectiveC</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+  
+     <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_24x24">
+	<a class="jiathis_button_tsina"></a>
+	<a class="jiathis_button_tqq"></a>
+	<a class="jiathis_button_weixin"></a>
+	<a class="jiathis_button_renren"></a>
+	<a class="jiathis_button_linkedin"></a>
+	<a class="jiathis_button_douban"></a>
+	<a class="jiathis_button_googleplus"></a>
+	<a href="http://www.jiathis.com/share?uid=1908538" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config = {data_track_clickback:'true'};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1393943056255450" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<!-- UY BEGIN -->
+<div id="uyan_frame"></div>
+<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1908538"></script>
+<!-- UY END -->
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/cn/blog/2014/04/13/c-plus-plus-11-move-semantic/" title="Previous Post: C++11之Move 构造函数和Move 赋值操作符">&laquo; C++11之Move 构造函数和Move 赋值操作符</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+ <h1>Archives</h1>
+ <ul id="categories">
+  <li class='category'><a href='/cn/blog/categories/android/'>Android(1)</a></li>
+<li class='category'><a href='/cn/blog/categories/c-plus-plus/'>C_Plus_Plus(1)</a></li>
+<li class='category'><a href='/cn/blog/categories/objectivec/'>ObjectiveC(4)</a></li>
+<li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
+
+  </ul>
+  </section><section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/cn/blog/2014/04/16/objectivec-runtime-learning-4/">深入ObjectiveC Runtime之(四)类的加载与Category的实现</a>
+      </li>
+    
+      <li class="post">
+        <a href="/cn/blog/2014/04/13/c-plus-plus-11-move-semantic/">C++11之Move 构造函数和Move 赋值操作符</a>
+      </li>
+    
+      <li class="post">
+        <a href="/cn/blog/2014/04/09/objectivec-runtime-learning-3/">深入ObjectiveC Runtime之(三)NSObject类与NSObject接口</a>
+      </li>
+    
+      <li class="post">
+        <a href="/cn/blog/2014/04/03/objectivec-runtime-learning-2/">深入ObjectiveC Runtime之（二）安装Clang</a>
+      </li>
+    
+      <li class="post">
+        <a href="/cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist/">Android通过代码设置控件点击时颜色变化</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+<section>
+  <h1>Visitors</h1>
+  <script type="text/javascript" src="http://ji.revolvermaps.com/2/1.js?i=89aid7d1ejy&amp;s=220&amp;m=0&amp;v=true&amp;r=false&amp;b=000000&amp;n=false&amp;c=ff0000" async="async"></script>
+</section>
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Duanjin Chen -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
