@@ -173,5 +173,5 @@ attachCategoryMethods(Class cls, category_list *cats, bool flushCaches)
 函数第一个参数为当前正加载的类，第二个参数为对应类的所有的category的实现，在方法中，程序遍历了所有的category，将所有的在category中定义的函数，放在`mlists`中，然后利用`attachMethodLists`方法将category中添加的方法整合到类的method list当中，从而实现了category这一语言特性。
 
 代码并不复杂，关键是我们在月的的过程中要慢慢找到函数间的调用层次，类加载这一部分的函数调用层次如下所示：
-
+![](https://raw.githubusercontent.com/Charlesjean/cn/master/source/_posts/Category.png)
 
