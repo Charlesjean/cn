@@ -3,6 +3,7 @@ layout: post
 title: "C++11之Move 构造函数和Move 赋值操作符"
 date: 2014-04-13 11:19:04 +0800
 comments: true
+categories: C_Plus_Plus
 ---
 Move语义是C++11中为了提高性能，减少临时对象的构造和析构而引入的新的语义环境，和Move语义相关的还有右值引用(rvalue reference)，这里我们总结一下，Move语义的引入带来了哪些好处，当我们定义一个类时需要注意什么。
 
