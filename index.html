@@ -9,7 +9,7 @@
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="源代码经过编译、连接转化为机器码，在运行时又由runtime加载入内存，因此编译器、连接器和runtime在某种程度上说是协同工作的。在编译过程中，编译器会首先将源代码中的每一个类转换为汇编代码，每一个类的不同的变量，方法等都会被放在汇编代码的不同段当中，然后再将汇编代码转化为机器语言即二进制。 &hellip;">
+  <meta name="description" content="在移动App开发中，用户体验是我们在开发过程中必须考虑的问题，实时的相应用户的交互事件，是对一个App最基本的要求，因此程序的并行就显得尤其重要，因此在iOS中，程序的并行并不仅仅是为了加快某些操作的速度，更重要的我们是为了不要阻塞用户在主线程上的交互。iOS提供给我们不同级别的并行的接口， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,126 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/cn/blog/2014/04/19/ios-concurrent-program1/">iOS并行开发之GCD的使用</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-19T09:11:24+08:00" pubdate data-updated="true">Apr 19<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在移动App开发中，用户体验是我们在开发过程中必须考虑的问题，实时的相应用户的交互事件，是对一个App最基本的要求，因此程序的并行就显得尤其重要，因此在iOS中，程序的并行并不仅仅是为了加快某些操作的速度，更重要的我们是为了不要阻塞用户在主线程上的交互。iOS提供给我们不同级别的并行的接口，包括NSThread、Grand Central Dispatch（GCD）和NSOperationQueue，来满足我们在不同情形下的需要。</p>
+
+<p>不同的api使用的复杂程度也不同，GCD和NSOperationQueue是建立在NSThread的基础之上，提供给了我们更加高层次的抽象，因此在使用中，我们应该尽量的使用GCD与NSOperationQueu，主要有一下原因：</p>
+
+<ul>
+<li>GCD和NSOperationQueue提供给了我们更加友好的接口，使用起来更加方便灵活</li>
+<li>GCD和NSOperationQueue仍然是以NSThread为基础来实现的，他们的本质是在系统中维护了一个线程池。当我们放入其中的任务被运行时，运行的单位仍然是线程池中的线程</li>
+<li>GCD和NSOperationQueue可以根据系统当前的繁忙状态来决定线程池中可以并发的线程数，这样可以防止过多的线程同时并发，导致系统性能的下降。</li>
+</ul>
+
+
+<p>这里我主要是总结一下并行库的一些知识，还有一个小的<a href="https://github.com/Charlesjean/iOSConcurrentTest">Demo</a>，展示了api的基本用法。</p>
+
+<p>GCD是iOS提供的比较便捷的并行api，我们可以很方便的将包含我们操作的block放在GCD的<code>dispatch queue</code>当中，然后任务就会在线程池中运行。iOS提供给了我们五中不同优先级的dispatch queue，三种不同优先级的背景队列,主线程对应的main queue，以及一个用户IO 操作的背景队列。我们也可以通过系统提供的接口，自己创建新的dispatch queue。</p>
+
+<h4>Dispatch Queue</h4>
+
+<p>一般情况下，系统提供的队列就可以满足我们的要求</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">dispatch_queue_t</span> <span class="n">dispatch_get_global_queue</span><span class="p">(</span><span class="kt">long</span> <span class="n">priority</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">flags</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们也可以使用系统api <code>dispatch_queue_create</code>创建自己的队列，并指定队列的类型（串行队列或者并行队列），然后利用<code>dispatch_async</code>或者<code>dispatch_sync</code>将block放入队列中执行，一旦我们将操作放入队列中之后，我们便失去了对这些操作的控制，完全由系统决定他们的实行时间，如果你需要在某些时候取消队列中的操作，那么你需要使用NSOperationQueue。</p>
+
+<h5>多线程时的资源访问的保护</h5>
+
+<p>由于我们的操作在线程池中时并行执行的（除非你的dispatch queue为顺序的），因此如果我们操作中有对资源的写操作，那么我们就需要实现资源的互斥访问，可以通过<code>dispatch_barrier_async</code>来方便的做到这一点</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">dispatch_queue_t</span> <span class="n">queue</span> <span class="o">=</span> <span class="n">dispatch_queue_create</span><span class="p">(</span><span class="s">&quot;concurrentQueue&quot;</span><span class="p">,</span> <span class="n">DISPATCH_QUEUE_CONCURRENT</span><span class="p">);</span>
+</span><span class='line'><span class="c1">//if we want to add an item to array , and this method is called in blocks in the queue</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">insertString:</span><span class="p">(</span><span class="n">NSString</span><span class="o">*</span><span class="p">)</span><span class="nv">str</span><span class="p">{</span>
+</span><span class='line'>  <span class="n">dispatch_barrier_async</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>   <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">array</span> <span class="nl">addObject:</span><span class="n">str</span><span class="p">];</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>dispatch_barrier_async</code>确保了我们所有的插入操作都是安全的，它确保了<code>addObject</code>语句在queue中所有在其之前插入的block执行完之后才执行。</p>
+
+<h5>Dispatch Group</h5>
+
+<p>Dispatch Group的作用是我们可以集中的处理属于同一group的block，比如我们想要在某几个block全都执行完毕后，将他们的执行结果整合起来：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">dispatch_group_t</span> <span class="n">group</span> <span class="o">=</span> <span class="n">dispatch_group_create</span><span class="p">();</span>
+</span><span class='line'><span class="n">dispatch_queue_t</span> <span class="n">queue</span> <span class="o">=</span> <span class="n">dispatch_get_global_queue</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="n">dispatch_group_async</span><span class="p">(</span><span class="n">group</span><span class="p">,</span><span class="n">queue</span><span class="p">,</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>  <span class="c1">//some operation</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="n">dispatch_group_async</span><span class="p">(</span><span class="n">group</span><span class="p">,</span><span class="n">queue</span><span class="p">,</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>  <span class="c1">//some other operation</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//perform some tasks when all operations are done</span>
+</span><span class='line'><span class="n">dispatch_group_notify</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">dispatch_get_main_queue</span><span class="p">(),</span><span class="o">^</span><span class="p">{</span>
+</span><span class='line'>  <span class="n">MyLabel</span><span class="p">.</span><span class="n">setText</span><span class="p">(</span><span class="s">@&quot;All operations are done&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>只有当同一group当中的所有block都执行完之后，<code>MyLabel</code>才会发出通知。</p>
+
+<p>GCD还有很多其他的使用和实现的细节，你可以通过<a href="https://developer.apple.com/library/ios/DOCUMENTATION/General/Conceptual/ConcurrencyProgrammingGuide/ConcurrencyProgrammingGuide.pdf">文档</a>还获得更多的内容</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1237,11 +1357,16 @@
 <li class='category'><a href='/cn/blog/categories/c-plus-plus/'>C_Plus_Plus(1)</a></li>
 <li class='category'><a href='/cn/blog/categories/objectivec/'>ObjectiveC(4)</a></li>
 <li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
+<li class='category'><a href='/cn/blog/categories/ios/'>iOS(1)</a></li>
 
   </ul>
   </section><section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/cn/blog/2014/04/19/ios-concurrent-program1/">iOS并行开发之GCD的使用</a>
+      </li>
     
       <li class="post">
         <a href="/cn/blog/2014/04/16/objectivec-runtime-learning-4/">深入ObjectiveC Runtime之(四)类的加载与Category的实现</a>
@@ -1257,10 +1382,6 @@
     
       <li class="post">
         <a href="/cn/blog/2014/04/03/objectivec-runtime-learning-2/">深入ObjectiveC Runtime之（二）安装Clang</a>
-      </li>
-    
-      <li class="post">
-        <a href="/cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist/">Android通过代码设置控件点击时颜色变化</a>
       </li>
     
   </ul>
