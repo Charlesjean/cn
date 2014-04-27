@@ -4,7 +4,7 @@
   <title><![CDATA[Keep it Simple and Stupid]]></title>
   <link href="http://Charlesjean.github.io//cn/atom.xml" rel="self"/>
   <link href="http://Charlesjean.github.io//cn/"/>
-  <updated>2014-04-24T21:41:07+08:00</updated>
+  <updated>2014-04-27T13:58:36+08:00</updated>
   <id>http://Charlesjean.github.io//cn/</id>
   <author>
     <name><![CDATA[Duanjin Chen]]></name>
@@ -12,6 +12,187 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[在设计C++的类时我们需要考虑哪些内容]]></title>
+    <link href="http://Charlesjean.github.io//cn/blog/2014/04/27/c-plus-plus-construct-class/"/>
+    <updated>2014-04-27T11:32:33+08:00</updated>
+    <id>http://Charlesjean.github.io//cn/blog/2014/04/27/c-plus-plus-construct-class</id>
+    <content type="html"><![CDATA[<p>作为一种面向对象的编程语言，类是我们使用C++时频繁使用的单位，由于C++语言的某些特性，与java、Objectivec等语言相比，C++在对多态的实现上有一些不同。java与ObjectiveC是通过runtime来实现多态的，即系统在运行时根据对象的类型来决定，而C++是通过编译时对象的类型来决定调用的函数（C++中的多态是通过指针与virtual 函数来是实现的）。我们先通过例子来看C++与ObjectiveC在多态方面的不同。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="c1">//base class</span>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">Shape</span> : <span class="nc">NSObject</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">draw</span><span class="p">;</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">Shape</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">draw</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Shape Draw&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//derived class</span>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">Rectangle</span> : <span class="nc">Shape</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">Rectangle</span>
+</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">draw</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Rectangle Draw&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//test</span>
+</span><span class='line'><span class="n">Shape</span><span class="o">*</span> <span class="n">s</span> <span class="o">=</span> <span class="p">[[</span><span class="n">Shape</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+</span><span class='line'><span class="p">[</span><span class="n">s</span> <span class="n">draw</span><span class="p">];</span><span class="c1">//will call draw defined in shape</span>
+</span><span class='line'><span class="n">Shape</span><span class="o">*</span> <span class="n">r</span> <span class="o">=</span> <span class="p">[[</span><span class="n">Rectangle</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+</span><span class='line'><span class="p">[</span><span class="n">r</span> <span class="n">draw</span><span class="p">];</span><span class="c1">//will call draw definied in rectangle</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对应的类在C++中定义如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include&lt;iostream&gt;</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Shape</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>  <span class="n">Shape</span><span class="p">();</span>
+</span><span class='line'>  <span class="o">~</span><span class="n">Shape</span><span class="p">();</span>
+</span><span class='line'>  <span class="kt">void</span> <span class="n">draw</span><span class="p">(){</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="o">&lt;&lt;</span><span class="s">&quot;Shape Draw&quot;</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Rectangle</span> <span class="o">:</span><span class="k">public</span> <span class="n">Shape</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>  <span class="kt">void</span> <span class="n">draw</span><span class="p">(){</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Rectangle Draw&quot;</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//test</span>
+</span><span class='line'>  <span class="n">Shape</span><span class="o">*</span> <span class="n">s</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Shape</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">s</span><span class="o">-&gt;</span><span class="n">draw</span><span class="p">();</span><span class="c1">//will call draw definied by Shape</span>
+</span><span class='line'>  <span class="n">Shape</span><span class="o">*</span> <span class="n">r</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Rectangle</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">r</span><span class="o">-&gt;</span><span class="n">draw</span><span class="p">();</span><span class="c1">//will also call draw defined by Shape</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个例子可以看出来，在C++中，如果函数没有被声明为Virtual，那么通过指针是无法实现多态的。这种机制，带来了代码运行的效率，但是却给我们编码人员提出了更大的要求，我们不能单纯的凭感觉使用c++，使用c++需要我们同时进行思考，将一些必须考虑的内容时刻放在脑子里。</p>
+
+<p>在设计我们自己的类时，我们通常需要审视以下方面的内容（来自C++沉思录）：</p>
+
+<ul>
+<li>类中是否需要构造函数</li>
+<li>类中成员变量的作用域（private or public）</li>
+<li>是否需要定义默认构造函数</li>
+<li>是否每一个成员变量都需要在每一个构造函数中初始化</li>
+<li>是否需要定义析构函数（*）</li>
+<li>是否需要将析构函数定义为Virtual</li>
+<li>是否需要定义拷贝构造函数，移动构造函数（*）</li>
+<li>是否需要重载赋值操作符（*）</li>
+<li>赋值操作符的重载是否正确（是否有效的处理了自赋值情况）（*）</li>
+<li>拷贝构造函数和赋值操作符的参数是否确保使用了const限制符（*）</li>
+<li>传入引用参数时，是否应该使用const修饰符</li>
+</ul>
+
+
+<p>以上这些条目，应该是我们实现类时需要注意的内容，其中标记<code>*</code>的我们需要进一步解释。</p>
+
+<h4>析构函数、拷贝构造函数、赋值操作符</h4>
+
+<p>析构函数、拷贝构造函数和赋值操作符被称作C++的<code>Big Three</code>,因为通常情况下，如果我们定义了其中一个，我们同样需要定义其他两个。</p>
+
+<p>当我们的类中，具有不能自动释放的资源（通常是一些指针），那么我们需要定义析构函数，在我们的对象析构时，确保资源能够还给系统，从而避免资源的泄露。在这种情况下，<code>我们同样不能够使用系统自己提供的默认的拷贝和赋值的定义</code>。下面的例子可以告诉我们原因：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">Shape</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'><span class="k">public</span><span class="o">:</span>
+</span><span class='line'>  <span class="n">Shape</span><span class="p">();</span>
+</span><span class='line'>  <span class="o">~</span><span class="n">Shape</span><span class="p">();</span>
+</span><span class='line'>  <span class="kt">void</span> <span class="n">draw</span><span class="p">(){</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Shape Draw&quot;</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="kt">void</span> <span class="n">changeStr</span><span class="p">(){</span> <span class="o">*</span><span class="n">str</span> <span class="o">=</span> <span class="s">&quot;I am changed&quot;</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="kt">void</span> <span class="n">printStr</span><span class="p">(){</span> <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">str</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span> <span class="p">}</span>
+</span><span class='line'><span class="k">private</span><span class="o">:</span>
+</span><span class='line'>  <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">*</span> <span class="n">str</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="c1">//test</span>
+</span><span class='line'><span class="n">Shape</span> <span class="n">s</span><span class="p">;</span>
+</span><span class='line'><span class="n">Shape</span> <span class="n">b</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+</span><span class='line'><span class="n">b</span><span class="p">.</span><span class="n">changeStr</span><span class="p">();</span>
+</span><span class='line'><span class="n">s</span><span class="p">.</span><span class="n">printStr</span><span class="p">();</span><span class="c1">//result &quot;I am changed&quot;</span>
+</span><span class='line'><span class="n">b</span><span class="p">.</span><span class="n">printStr</span><span class="p">();</span><span class="c1">//result &quot;I am changed&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过结果我们可以看出，系统默认提供的拷贝构造函数和赋值操作符实现了<code>bit-wise</code>的拷贝，拷贝后，例子中的两个对象中的指针成员指向了同样的内存地址，当我们改变一个的内容时，另一个对象的内容也被改变了（基本上这不会是我们希望的）。</p>
+
+<p>因此，在我们实现类时，<code>析构函数</code>，<code>拷贝构造函数</code>，<code>赋值操作符</code>，<code>移动构造函数</code>这四者是息息相关的，我们必须谨慎思考如何适当的实现他们，并且需要确保能够正确和高效的实现，关于他们的实现方法，可以参考之前的一篇<a href="http://dj-chen.com/cn/blog/2014/04/13/c-plus-plus-11-move-semantic/">文章</a>。</p>
+
+<p>关于赋值操作符的重载方式，以及传入引用或者const引用的问题，同样可以参考上面文章中的实现。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[iOS并行开发之GCD的使用]]></title>
