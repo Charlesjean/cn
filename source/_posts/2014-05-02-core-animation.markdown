@@ -74,5 +74,24 @@ CALayer的绘制是二维的，也就是说在将CALayer的整个Layer Hierarchy
 
 ####Accordion Animation
 相对于folder animation来说accordion animation的实现要复杂许多。
+下图示意了Accordion的过程：
+
+![](https://raw.githubusercontent.com/Charlesjean/cn/master/source/_posts/accordition.png)
+
+其中A、B、C为“表面上”看起来需要做动画的Layer，在C向右`移动`的过程中，A和B需要一边向右`移动`一边绕轴`转动`,再仔细想一下，还有以下要求：
+
+*	 1.A和B在转动的过程中需要有透视的效果,即A和B的父Layer需要是一个CATransformLayer
+*	 2.移动与转动过程中A 与 C需要一直保持邻接，即A的边在X方向的移动速度要与C的移动速度相同
+*	 3.在移动和转动过程中A 与 B需要一直保持邻接，A与B在X方向上具有相同的移动速度
+*	 4.B的最右边，即红色的线，需要保持不变，B的红边须保持“不动”
+
+相对于folder动画，accordion不再是只在某一个layer上实现动画，而是多个layer结合起来实现动画，而且过程中多了许多限制条件。
+我们将整个动画分解为如下部分：
+
+*	A和B绕绿色的轴转动
+*	A和B的父layer，向右运动（保持B与红线始终相接）的同时向后运动（保持B的红边大小不变，中和透视效果）
+*	C按照一定的速率向右运动
+
+由于我们需要控制各个layer移动的速度，CABasicAnimation明显不能够满足我们的要求，因此必须使用CAKeyframeAnimation。在代码中你可以看到这个动画的具体实现，关于各种速度的关系，还需针对转动和移动的关系进行一定的数学计算。在实现的过程中还有不少细节需要注意，如果对代码或者整个animation的实现设计有疑问可以留言，我会一一解答。
 
 
