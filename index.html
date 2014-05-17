@@ -9,7 +9,7 @@
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="用户体验是用户在使用一款软件和系统时，对软件和系统能得到的最直观的感受，iOS一直因为良好的用户体验而受到大家的赞赏，流畅的操作和丰富的动画无疑给iOS的用户体验加了不少分。对于我们编程人员来说，iOS中提供了强大的Core Animation库，并封装了友好的API，使我们能够实现复杂的动画效果 &hellip;">
+  <meta name="description" content="C++11给我们提供了很多新的特性，相比于C++98，C++11在很多地方使用起来更加顺手，很多新的特性让C++变得更加让人喜欢，对编码人员更加友好，很多规则更加统一。在这些新的特性当中，有很多高级特性，比如关于模板的特性（个人真的很少在开发中用到）；也有很多确确实实方便了开发，而且使c++ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,238 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/cn/blog/2014/05/17/c-plus-plus-11-new-feature/">C++11 常用新语言特性总结</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-17T14:07:31+08:00" pubdate data-updated="true">May 17<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>C++11给我们提供了很多新的特性，相比于C++98，C++11在很多地方使用起来更加顺手，很多新的特性让C++变得更加让人喜欢，对编码人员更加友好，很多规则更加统一。在这些新的特性当中，有很多高级特性，比如关于模板的特性（个人真的很少在开发中用到）；也有很多确确实实方便了开发，而且使c++代码更加整洁、安全、快速的特性。在学习中总结一下，往往可以在使用过程中更加得心应手。</p>
+
+<h4>auto</h4>
+
+<p>c++11中auto关键字和c++98中有完全的不同，在c++11中，如果我们把变量声明为auto，那么编译器会自动根据上下文推断出变量的类型，因此在很多情况下，特别是类型比较长的时候，我们可以使用auto来使代码更加整洁：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">vector</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">vec</span><span class="p">;</span>
+</span><span class='line'><span class="p">.....</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">auto</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">begin</span><span class="p">(</span><span class="n">v</span><span class="p">);</span><span class="c1">//get iterator of vector,do not need to use vector&lt;String&gt;::iterator</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>乍一看，这仅仅是提供了一些编程上的方便，但是实际上在很多类型不确定的时候，auto提供了更大的帮助</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>  <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="p">,</span> <span class="k">class</span> <span class="nc">U</span><span class="o">&gt;</span>
+</span><span class='line'><span class="kt">void</span> <span class="n">multiply</span><span class="p">(</span><span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;</span> <span class="n">vt</span><span class="p">,</span> <span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="n">U</span><span class="o">&gt;&amp;</span> <span class="n">vu</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">auto</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">vt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">vu</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="c1">//here it&#39;s hard to decide type of tmp, auto saves us a lot</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>智能指针</h4>
+
+<p>在c++11中，智能指针使用起来更加顺手，相比于之前的auto_ptr, unique_ptr和shared_ptr更加容易的和stl容器一起使用。unique_ptr顾名思义为独有指针，被unique_ptr包含的指针在任意时刻只能有一个unique_ptr拥有，任何对unique_ptr的赋值和拷贝都会产生指针的移动；shared_ptr是实现了引用计数的智能指针，相对于unique_ptr，shared_ptr需要维护一个计数对象，因此在赋值和拷贝时，较unique_ptr会产生更大的开销。weak_ptr是用来避免循环引用。（在另一篇文章中，我们会比较这几种智能指针的使用）</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">gadget</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">widget</span> <span class="p">{</span>
+</span><span class='line'><span class="k">private</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">gadget</span><span class="o">&gt;</span> <span class="n">g</span><span class="p">;</span> <span class="c1">// if shared ownership</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">gadget</span> <span class="p">{</span>
+</span><span class='line'><span class="k">private</span><span class="o">:</span>
+</span><span class='line'>    <span class="n">weak_ptr</span><span class="o">&lt;</span><span class="n">widget</span><span class="o">&gt;</span> <span class="n">w</span><span class="p">;</span><span class="c1">//avoid cycle reference</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>nullptr</h4>
+
+<p>在C++11中我们可以使用nullptr来指定一个指针为空，而不再使用0 或者NULL。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="kt">char</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="n">nullptr</span><span class="p">;</span>
+</span><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">q</span> <span class="o">=</span> <span class="n">nullptr</span><span class="p">;</span>
+</span><span class='line'><span class="kt">char</span><span class="o">*</span> <span class="n">p2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="c1">//do not use this any more, if you use, p==p2 is still ok</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//for function</span>
+</span><span class='line'><span class="kt">void</span> <span class="n">f</span><span class="p">(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="kt">void</span> <span class="n">f</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'><span class="n">f</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="c1">//will call f(int)</span>
+</span><span class='line'><span class="n">f</span><span class="p">(</span><span class="n">nullptr</span><span class="p">);</span><span class="c1">//will call f(char*)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Range for</h4>
+
+<p>c++11中也引入了更加有好的for循环语法</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="c1">//c++98 </span>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">i</span> <span class="o">=</span> <span class="n">v</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">v</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">//c++11</span>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">audo</span> <span class="n">d</span> <span class="o">:</span> <span class="n">v</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="p">...</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Range-for语法不仅适用于stl容器，还可以用于string, array。</p>
+
+<h4>不需使用容器的begin和end成员函数</h4>
+
+<p>begin()和end()方法不仅仅可以用于stl 容器，还可以用于数组当中，看如下的对比代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>  <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">v</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
+</span><span class='line'><span class="c1">//c++98</span>
+</span><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">v</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">b</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+</span><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//c++11</span>
+</span><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">begin</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">end</span><span class="p">(</span><span class="n">v</span><span class="p">));</span>
+</span><span class='line'><span class="n">std</span><span class="o">::</span><span class="n">sort</span><span class="p">(</span><span class="n">begin</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">end</span><span class="p">(</span><span class="n">a</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对比如此明显，你还会用原来的语法吗？</p>
+
+<h4>Move Semantic</h4>
+
+<p>可以参考<a href="http://dj-chen.com/cn/blog/2014/04/13/c-plus-plus-11-move-semantic/">这篇文章</a></p>
+
+<h4>类成员变量的初始化</h4>
+
+<p>在c++11中允许我们在声明成员变量时给出初始化，避免了需要在所有的构造函数中提供变量的初始化：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">class</span> <span class="nc">A</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>      <span class="n">A</span><span class="p">()</span> <span class="p">{}</span>
+</span><span class='line'>      <span class="n">A</span><span class="p">(</span><span class="kt">int</span> <span class="n">a_val</span><span class="p">)</span> <span class="o">:</span> <span class="n">a</span><span class="p">(</span><span class="n">a_val</span><span class="p">)</span> <span class="p">{}</span><span class="c1">//a_aval will replace 7</span>
+</span><span class='line'>      <span class="n">A</span><span class="p">(</span><span class="n">D</span> <span class="n">d</span><span class="p">)</span> <span class="o">:</span> <span class="n">b</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="n">d</span><span class="p">))</span> <span class="p">{}</span>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span><span class="c1">//this is ok</span>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span><span class="c1">//this is ok</span>
+</span><span class='line'>  <span class="k">private</span><span class="o">:</span>
+</span><span class='line'>      <span class="n">HashingFunction</span> <span class="n">hash_algorithm</span><span class="p">{</span><span class="s">&quot;MD5&quot;</span><span class="p">};</span>  <span class="c1">// Cryptographic hash to be applied to all A instances</span>
+</span><span class='line'>      <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s</span><span class="p">{</span><span class="s">&quot;Constructor run&quot;</span><span class="p">};</span>       <span class="c1">// String indicating state in object lifecycle</span>
+</span><span class='line'>    <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>托管构造</h4>
+
+<p>C++11允许我们托管构造，即在一个构造函数中调用另一个构造函数，实现类状态的初始化，避免了我们之前经常需要自己实现一个Init函数，然后在各个构造函数中调用:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'>  <span class="k">class</span> <span class="nc">X</span> <span class="p">{</span>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>      <span class="n">X</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="mi">0</span><span class="o">&lt;</span><span class="n">x</span> <span class="o">&amp;&amp;</span> <span class="n">x</span><span class="o">&lt;=</span><span class="n">max</span><span class="p">)</span> <span class="n">a</span><span class="o">=</span><span class="n">x</span><span class="p">;</span> <span class="k">else</span> <span class="k">throw</span> <span class="n">bad_X</span><span class="p">(</span><span class="n">x</span><span class="p">);</span> <span class="p">}</span>
+</span><span class='line'>      <span class="n">X</span><span class="p">()</span> <span class="o">:</span><span class="n">X</span><span class="p">{</span><span class="mi">42</span><span class="p">}</span> <span class="p">{</span> <span class="p">}</span>
+</span><span class='line'>      <span class="n">X</span><span class="p">(</span><span class="n">string</span> <span class="n">s</span><span class="p">)</span> <span class="o">:</span><span class="n">X</span><span class="p">{</span><span class="n">lexical_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">s</span><span class="p">)}</span> <span class="p">{</span> <span class="p">}</span>
+</span><span class='line'>  <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>C++11还有许多其他的新的特性或者语法，这里只是自己平时用到的，觉得比较实用的，欢迎大家提出自己喜欢的新特性。对于C++11中的lambda语法，我个人不是太喜欢，因为不是特别容易调试:)</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1626,94 +1858,9 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/cn/blog/2014/03/25/personal-blog-with-github-and-octopress/">基于Github托管的Octopress个人博客</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-03-25T07:33:30+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>   Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
-代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法，并集成了更多可以使用的插件和自动化的功能，这个中文博客就是基于Octopress，仍然托管在Github上，不过不是以个人网页的形式，而是以project pages的形式托管.</p>
-
-<p>  在部署octopress的时候，会遇到不少问题，这里主要来记录一下，以备以后使用.</p>
-
-<h4>fatal：remote origin already exists</h4>
-
-<p>我的配置环境为reby 1.9.3， 在根据Octopress的<a href="http://octopress.org/docs/setup/">官方文档</a>安装主题之后，并在github上建立好新的repository之后，执行rake setup_github_pages会出错，提示</p>
-
-<pre><code>remote origin already exists
-</code></pre>
-
-<p>解决方法：将Octopress/Rakefile中357行</p>
-
-<pre><code>git remote add origin #{repo_url} 改为 git remote set-url origin #{repo_url}
-</code></pre>
-
-<h4>修改相应的配置文件</h4>
-
-<p>由于现在的中文博客是放在github的一个project上，目的是为了实现如下方式访问：username.github.io/project,所以我们需要修改一下Octopress的配置文件，来指明目录结构。</p>
-
-<ul>
-<li>_config.yml:修改url,root,destination</li>
-<li>config.rb:修改http_path,http_image_path,http_fonts_path,css_dir</li>
-</ul>
-
-
-<p>具体的改变可以参考<a href="https://github.com/Charlesjean/cn">这里</a>相对应的文件。</p>
-
-<h4>UTF-8或者GB2312编码问题</h4>
-
-<p>在执行rake generate命令之后，如果遇到 invalid byte sequence UTF-8 等错误，说明在你的文件当中有非法的编码字符，这些字符可能是由于我们使用的编辑器默认添加的一些字符，这里我们首先推荐使用nodepad++或者markdown专用的编辑器。</p>
-
-<p>解决方法：</p>
-
-<ul>
-<li>修改Ruby193\lib\ruby\gems\1.9.1\gems\jekyll-0.12.1\lib\jekyll\convertible.rb， 改变如下</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>self.content = File.read(File.join(base, name),:encoding=>"utf-8")</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>利用nodepad++找出非法字符，并将文档编码设置为utf-8 without BOM</li>
-</ul>
-
-
-<p>上面基本上列出了我在搭建过程中遇到的问题，喜欢用github搭建博客的都起码有一些编程能力，相信大家应该都可以很好地解决这些基本的问题，也欢迎大家反映自己遇到的问题，我们一起讨论解决。</p>
-
-<p>再一次感谢Github提供了如此简单，可靠，关键还是免费的搭建博客的支持:)</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/cn/blog/page/2/">&larr; 前一页</a>
     
     <a href="/cn/blog/archives">文章列表</a>
     
@@ -1725,7 +1872,7 @@
  <h1>Archives</h1>
  <ul id="categories">
   <li class='category'><a href='/cn/blog/categories/android/'>Android(1)</a></li>
-<li class='category'><a href='/cn/blog/categories/c-plus-plus/'>C_Plus_Plus(2)</a></li>
+<li class='category'><a href='/cn/blog/categories/c-plus-plus/'>C_Plus_Plus(3)</a></li>
 <li class='category'><a href='/cn/blog/categories/objectivec/'>ObjectiveC(4)</a></li>
 <li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
 <li class='category'><a href='/cn/blog/categories/ios/'>iOS(2)</a></li>
@@ -1734,6 +1881,10 @@
   </section><section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/cn/blog/2014/05/17/c-plus-plus-11-new-feature/">C++11 常用新语言特性总结</a>
+      </li>
     
       <li class="post">
         <a href="/cn/blog/2014/05/02/core-animation/">iOS中Core Animation的使用</a>
@@ -1749,10 +1900,6 @@
     
       <li class="post">
         <a href="/cn/blog/2014/04/16/objectivec-runtime-learning-4/">深入ObjectiveC Runtime之(四)类的加载与Category的实现</a>
-      </li>
-    
-      <li class="post">
-        <a href="/cn/blog/2014/04/13/c-plus-plus-11-move-semantic/">C++11之Move 构造函数和Move 赋值操作符</a>
       </li>
     
   </ul>

@@ -5,13 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>分类目录 - Keep it Simple and Stupid</title>
+  <title>Keep it Simple and Stupid</title>
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="分类目录 Included file &#8216;asides/categories_sidebar.html&#8217; not found in _includes directory Archives Android(1)
-C_Plus_Plus(3)
-ObjectiveC(4) &hellip;">
+  <meta name="description" content="Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
+代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +19,7 @@ ObjectiveC(4) &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/categories">
+  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/page/2">
   <link href="/cn/favicon.png" rel="icon">
   <link href="/cn/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="" rel="alternate" title="Keep it Simple and Stupid" type="application/atom+xml">
@@ -79,21 +78,104 @@ ObjectiveC(4) &hellip;">
 </nav>
   <div id="main">
     <div id="content">
-      <div>
-<article role="article">
+      <div class="blog-index">
   
+  
+  
+    <article>
+      
   <header>
-    <h1 class="entry-title">分类目录</h1>
+    
+      <h1 class="entry-title"><a href="/cn/blog/2014/03/25/personal-blog-with-github-and-octopress/">基于Github托管的Octopress个人博客</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-25T07:33:30+08:00" pubdate data-updated="true">Mar 25<span>th</span>, 2014</time>
+        
+      </p>
     
   </header>
-  
-  Included file &#8216;asides/categories_sidebar.html&#8217; not found in _includes directory
 
-  
-</article>
 
+  <div class="entry-content"><p>   Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
+代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法，并集成了更多可以使用的插件和自动化的功能，这个中文博客就是基于Octopress，仍然托管在Github上，不过不是以个人网页的形式，而是以project pages的形式托管.</p>
+
+<p>  在部署octopress的时候，会遇到不少问题，这里主要来记录一下，以备以后使用.</p>
+
+<h4>fatal：remote origin already exists</h4>
+
+<p>我的配置环境为reby 1.9.3， 在根据Octopress的<a href="http://octopress.org/docs/setup/">官方文档</a>安装主题之后，并在github上建立好新的repository之后，执行rake setup_github_pages会出错，提示</p>
+
+<pre><code>remote origin already exists
+</code></pre>
+
+<p>解决方法：将Octopress/Rakefile中357行</p>
+
+<pre><code>git remote add origin #{repo_url} 改为 git remote set-url origin #{repo_url}
+</code></pre>
+
+<h4>修改相应的配置文件</h4>
+
+<p>由于现在的中文博客是放在github的一个project上，目的是为了实现如下方式访问：username.github.io/project,所以我们需要修改一下Octopress的配置文件，来指明目录结构。</p>
+
+<ul>
+<li>_config.yml:修改url,root,destination</li>
+<li>config.rb:修改http_path,http_image_path,http_fonts_path,css_dir</li>
+</ul>
+
+
+<p>具体的改变可以参考<a href="https://github.com/Charlesjean/cn">这里</a>相对应的文件。</p>
+
+<h4>UTF-8或者GB2312编码问题</h4>
+
+<p>在执行rake generate命令之后，如果遇到 invalid byte sequence UTF-8 等错误，说明在你的文件当中有非法的编码字符，这些字符可能是由于我们使用的编辑器默认添加的一些字符，这里我们首先推荐使用nodepad++或者markdown专用的编辑器。</p>
+
+<p>解决方法：</p>
+
+<ul>
+<li>修改Ruby193\lib\ruby\gems\1.9.1\gems\jekyll-0.12.1\lib\jekyll\convertible.rb， 改变如下</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>self.content = File.read(File.join(base, name),:encoding=>"utf-8")</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>利用nodepad++找出非法字符，并将文档编码设置为utf-8 without BOM</li>
+</ul>
+
+
+<p>上面基本上列出了我在搭建过程中遇到的问题，喜欢用github搭建博客的都起码有一些编程能力，相信大家应该都可以很好地解决这些基本的问题，也欢迎大家反映自己遇到的问题，我们一起讨论解决。</p>
+
+<p>再一次感谢Github提供了如此简单，可靠，关键还是免费的搭建博客的支持:)</p>
 </div>
+  
+  
 
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/cn/blog/archives">文章列表</a>
+    
+    <a class="next" href="/cn/">后一页 &rarr;</a>
+    
+  </div>
+</div>
 <aside class="sidebar">
   
     <section>
@@ -142,7 +224,6 @@ ObjectiveC(4) &hellip;">
 </section>
   
 </aside>
-
 
     </div>
   </div>
