@@ -9,8 +9,7 @@
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="Github Pages 一直是自己喜爱的博客形式，之前托管了一个简单的英文博客，直接将博客的源代码放在username.github.io项目下，
-代码管理简单，但是需要github在访问时将Jeklly转换为静态的网页，未免会带来网站性能的损失。Octopress 提供了更好的管理博客的方法 &hellip;">
+  <meta name="description" content="ObjectiveC与C++同样是在C的基础上对C的扩展，但与C++相比，我认为ObjectiveC提供了更加强大的功能，比如Category，forward message, method-swiazzing, KVO以及一些runtime接口， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +79,194 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/cn/blog/2014/03/26/objectivec-runtime-learning-1/">深入ObjectiveC Runtime之对象模型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-26T07:36:12+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>ObjectiveC与C++同样是在C的基础上对C的扩展，但与C++相比，我认为ObjectiveC提供了更加强大的功能，比如Category，forward message, method-swiazzing, KVO以及一些runtime接口，而所有这些技术都是以ObjectiveC强大的Runtime为基础的。因此只有深入学习了runtime的机制，才能使我们对OC的使用更加得心应手， 并且对于大多数runtime技术，我们必须在熟悉它的底层实现机制后才能够达到正确使用的目的，否则的话你将陷入痛苦的debug之中。</p>
+
+<p>对象模型是程序运行时对象在内存中的组织方式，由于ObjectiveC是OOP的编程语言，对象模型就涉及到<code>类的组织方式</code>,<code>继承关系的表示方法</code>，<code>成员变量与函数的存储方式</code>，<code>如何实现RTTI</code>等，因此对象模型是我们了解ObjectiveC runtime技术实现机制的基础。</p>
+
+<h3>ObjectiveC中对象的数据结构</h3>
+
+<p>我们都知道，ObjectiveC中的大多数类都是NSObject的子类，因此我们先从NSObject的结构开始,在NSObject.h中我们可以看到如下代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">NS_ROOT_CLASS</span>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">NSObject</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Class</span>  <span class="n">isa</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>NSObject类中只有一个名为<code>isa</code>的<code>Class</code>类型的变量，跳转到<code>Class</code>的定义我们可以看到：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">objc_class</span> <span class="o">*</span><span class="n">Class</span><span class="p">;</span>
+</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">objc_object</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Class</span> <span class="n">isa</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span> <span class="o">*</span><span class="kt">id</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Class</code>为指向<code>objc_class</code>的指针，而<code>objc_class</code>就代表了在Objectivec中一个类的定义。其源代码定义如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">struct</span> <span class="n">objc_class</span> <span class="o">:</span> <span class="n">objc_object</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// Class ISA;</span>
+</span><span class='line'>    <span class="n">Class</span> <span class="n">superclass</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">cache_t</span> <span class="n">cache</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我们看到<code>objc_class</code>继承自<code>objc_object</code>,而<code>objc_object</code>的定义如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">struct</span> <span class="n">objc_object</span> <span class="p">{</span>
+</span><span class='line'><span class="nl">private:</span>
+</span><span class='line'>    <span class="n">uintptr_t</span> <span class="n">isa</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>objc_object只保存了一个<code>isa</code>指针，在原代码中我们还可以看到</p>
+
+<pre><code>typedef struct objc_object *id;
+</code></pre>
+
+<p>看到这里一切应该都已经明了了。我们知道在ObjectiveC中每一个对象都是一个<code>id</code>,所以<code>objc_object</code>就是我们每一个对象在内存中的结构，它保存了一个指向<code>objc_class</code>的指针，这个指针就指向对象所对应的类在内存中的位置。</p>
+
+<p>既然<code>objc_class</code>代表了ObjectiveC中的类，那么结构中必然需要存储类的相关信息，包括类的名字，成员函数的位置等信息，在ObjectiveC2.0中，这些信息被封装在了<code>class_rw_t</code>和<code>class_ro_t</code>当中，他们代码定义如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">struct</span> <span class="n">class_rw_t</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">uint32_t</span> <span class="n">flags</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">uint32_t</span> <span class="n">version</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">const</span> <span class="n">class_ro_t</span> <span class="o">*</span><span class="n">ro</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">union</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">method_list_t</span> <span class="o">**</span><span class="n">method_lists</span><span class="p">;</span>  <span class="c1">// RW_METHOD_ARRAY == 1</span>
+</span><span class='line'>        <span class="n">method_list_t</span> <span class="o">*</span><span class="n">method_list</span><span class="p">;</span>    <span class="c1">// RW_METHOD_ARRAY == 0</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">chained_property_list</span> <span class="o">*</span><span class="n">properties</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">const</span> <span class="n">protocol_list_t</span> <span class="o">**</span> <span class="n">protocols</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Class</span> <span class="n">firstSubclass</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">Class</span> <span class="n">nextSiblingClass</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">class_ro_t</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">uint32_t</span> <span class="n">flags</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">uint32_t</span> <span class="n">instanceStart</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">uint32_t</span> <span class="n">instanceSize</span><span class="p">;</span>
+</span><span class='line'><span class="cp">#ifdef __LP64__</span>
+</span><span class='line'>    <span class="n">uint32_t</span> <span class="n">reserved</span><span class="p">;</span>
+</span><span class='line'><span class="cp">#endif</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">const</span> <span class="n">uint8_t</span> <span class="o">*</span> <span class="n">ivarLayout</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">name</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">const</span> <span class="n">method_list_t</span> <span class="o">*</span> <span class="n">baseMethods</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">const</span> <span class="n">protocol_list_t</span> <span class="o">*</span> <span class="n">baseProtocols</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">const</span> <span class="n">ivar_list_t</span> <span class="o">*</span> <span class="n">ivars</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">const</span> <span class="n">uint8_t</span> <span class="o">*</span> <span class="n">weakIvarLayout</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">const</span> <span class="n">property_list_t</span> <span class="o">*</span><span class="n">baseProperties</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至此我们基本上了解了ObjectiveC中对象的组织形式，总结如下：</p>
+
+<blockquote><p>每一个ObjectiveC对象都保存了一个<code>isa</code>指针指向其所对应的类的实现<code>objc_class</code>，而<code>objc_class</code>中保存了类父类，名称，函数列表，以及Protocol等信息。</p></blockquote>
+
+<p>但是有些内容还不是特别清晰：</p>
+
+<blockquote><ul>
+<li>对象的成员变量应该是局部于对象的，不应该保存在<code>objc_class</code>中，对于成员变量这部分的实现还不清晰</li>
+<li>对于大部分文章中提到的<code>元类</code>在代码中是如何体现的？ 目前我在代码中没有看到</li>
+</ul>
+</blockquote>
+
+<p>以上ObjectiveC基本的对象模型，在这个对象模型的基础上ObjectiveC提供给了我们丰富的Runtime特性以及OO的支持，以后我们会进一步深入了解一些重要特性的实现。</p>
+
+<p>我阅读的代码版本是Objc4-551，是官方开源的最新代码，如果文章中有错误或者有更详尽的看法请留言，共同学习进步。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -181,7 +368,7 @@
     <section>
  <h1>Archives</h1>
  <ul id="categories">
-  <li class='category'><a href='/cn/blog/categories/android/'>Android(1)</a></li>
+  <li class='category'><a href='/cn/blog/categories/android/'>Android(2)</a></li>
 <li class='category'><a href='/cn/blog/categories/c-plus-plus/'>C_Plus_Plus(3)</a></li>
 <li class='category'><a href='/cn/blog/categories/objectivec/'>ObjectiveC(4)</a></li>
 <li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
@@ -191,6 +378,10 @@
   </section><section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/cn/blog/2014/05/20/goagent-android-sdk-download/">解决Android SDK Manager无法下载SDK的问题</a>
+      </li>
     
       <li class="post">
         <a href="/cn/blog/2014/05/17/c-plus-plus-11-new-feature/">C++11 常用新语言特性总结</a>
@@ -206,10 +397,6 @@
     
       <li class="post">
         <a href="/cn/blog/2014/04/19/ios-concurrent-program1/">iOS并行开发之GCD的使用</a>
-      </li>
-    
-      <li class="post">
-        <a href="/cn/blog/2014/04/16/objectivec-runtime-learning-4/">深入ObjectiveC Runtime之(四)类的加载与Category的实现</a>
       </li>
     
   </ul>
