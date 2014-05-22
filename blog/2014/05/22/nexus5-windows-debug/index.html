@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>解决Android SDK Manager无法下载SDK的问题 - Keep it Simple and Stupid</title>
+  <title>解决Windows下Android Device Manager无法找到Nexus5 - Keep it Simple and Stupid</title>
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="计算机应用可以说是少数国内与国外技术差别比较小的领域，主要原因是网络的帮助，使我们很方便的看到国外的技术文档与很多优秀的文章，但是很多时候国内的环境确实令人非常气愤，居然Android SDK网站都会被墙，以至于Android SDK Manager根本无法下载。解决方法是安装并打开goagent &hellip;">
+  <meta name="description" content="一直用公司的MAC开发Android，在将Nexus5连接到自己的Windows上时，发现ADT中无法找到Nexus5，adb devices命令也无法检测到设备，虽然设备能够以磁盘的方式显示在Windows Explorer中，但是似乎设备的驱动仍然没有正确的安装： 打开windows &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/05/20/goagent-android-sdk-download">
+  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/05/22/nexus5-windows-debug">
   <link href="/cn/favicon.png" rel="icon">
   <link href="/cn/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="" rel="alternate" title="Keep it Simple and Stupid" type="application/atom+xml">
@@ -82,7 +82,7 @@
   
   <header>
     
-      <h1 class="entry-title">解决Android SDK Manager无法下载SDK的问题</h1>
+      <h1 class="entry-title">解决Windows下Android Device Manager无法找到Nexus5</h1>
     
     
       <p class="meta">
@@ -98,14 +98,24 @@
   
 
 
-<time datetime="2014-05-20T22:31:33+08:00" pubdate data-updated="true">May 20<span>th</span>, 2014</time>
+<time datetime="2014-05-22T21:50:49+08:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>计算机应用可以说是少数国内与国外技术差别比较小的领域，主要原因是网络的帮助，使我们很方便的看到国外的技术文档与很多优秀的文章，但是很多时候国内的环境确实令人非常气愤，居然Android SDK网站都会被墙，以至于Android SDK Manager根本无法下载。解决方法是安装并打开goagent，并将SDK Manager的Proxy设置为<code>127.0.0.1:8087</code>。如果不知道goagent的话，那就好好搜索一下吧，国内的环境，基本上这个是必备的了。</p>
+<div class="entry-content"><p>一直用公司的MAC开发Android，在将Nexus5连接到自己的Windows上时，发现ADT中无法找到Nexus5，adb devices命令也无法检测到设备，虽然设备能够以磁盘的方式显示在Windows Explorer中，但是似乎设备的驱动仍然没有正确的安装：</p>
+
+<ul>
+<li>打开windows 设备管理器可以发现，Nexus5设备标识上有一黄色叹号，表示驱动没有正确安装</li>
+<li>下载Nexus5 <a href="http://developer.android.com/sdk/win-usb.html#top">设备驱动</a>，并解压至某一目录</li>
+<li>在设备管理器中，右键点击设备，并更新驱动</li>
+<li>选中刚才解压的目录，即可正确的安装驱动</li>
+</ul>
+
+
+<p>Issue Fixed ：）</p>
 </div>
 
 
@@ -128,7 +138,7 @@
   
 
 
-<time datetime="2014-05-20T22:31:33+08:00" pubdate data-updated="true">May 20<span>th</span>, 2014</time>
+<time datetime="2014-05-22T21:50:49+08:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
       
 
 <span class="categories">
@@ -172,10 +182,8 @@ var jiathis_config = {data_track_clickback:'true'};
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/cn/blog/2014/05/17/c-plus-plus-11-new-feature/" title="Previous Post: C++11 常用新语言特性总结">&laquo; C++11 常用新语言特性总结</a>
+        <a class="basic-alignment left" href="/cn/blog/2014/05/20/goagent-android-sdk-download/" title="Previous Post: 解决Android SDK Manager无法下载SDK的问题">&laquo; 解决Android SDK Manager无法下载SDK的问题</a>
       
-      
-        <a class="basic-alignment right" href="/cn/blog/2014/05/22/nexus5-windows-debug/" title="Next Post: 解决Windows下Android Device Manager无法找到Nexus5">解决Windows下Android Device Manager无法找到Nexus5 &raquo;</a>
       
     </p>
   </footer>

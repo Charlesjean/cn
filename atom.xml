@@ -4,7 +4,7 @@
   <title><![CDATA[Keep it Simple and Stupid]]></title>
   <link href="http://Charlesjean.github.io//cn/atom.xml" rel="self"/>
   <link href="http://Charlesjean.github.io//cn/"/>
-  <updated>2014-05-20T22:40:36+08:00</updated>
+  <updated>2014-05-22T22:00:53+08:00</updated>
   <id>http://Charlesjean.github.io//cn/</id>
   <author>
     <name><![CDATA[Duanjin Chen]]></name>
@@ -12,6 +12,25 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[解决Windows下Android Device Manager无法找到Nexus5]]></title>
+    <link href="http://Charlesjean.github.io//cn/blog/2014/05/22/nexus5-windows-debug/"/>
+    <updated>2014-05-22T21:50:49+08:00</updated>
+    <id>http://Charlesjean.github.io//cn/blog/2014/05/22/nexus5-windows-debug</id>
+    <content type="html"><![CDATA[<p>一直用公司的MAC开发Android，在将Nexus5连接到自己的Windows上时，发现ADT中无法找到Nexus5，adb devices命令也无法检测到设备，虽然设备能够以磁盘的方式显示在Windows Explorer中，但是似乎设备的驱动仍然没有正确的安装：</p>
+
+<ul>
+<li>打开windows 设备管理器可以发现，Nexus5设备标识上有一黄色叹号，表示驱动没有正确安装</li>
+<li>下载Nexus5 <a href="http://developer.android.com/sdk/win-usb.html#top">设备驱动</a>，并解压至某一目录</li>
+<li>在设备管理器中，右键点击设备，并更新驱动</li>
+<li>选中刚才解压的目录，即可正确的安装驱动</li>
+</ul>
+
+
+<p>Issue Fixed ：）</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[解决Android SDK Manager无法下载SDK的问题]]></title>
