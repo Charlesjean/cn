@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>深入ObjectiveC Runtime之（二）安装Clang - Keep it Simple and Stupid</title>
+  <title>初始Apple Swift语言 - Keep it Simple and Stupid</title>
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="深入学习ObjectiveC Runtime的实现与技术">
+  <meta name="description" content="对apple swift语言的一些看法">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/04/03/objectivec-runtime-learning-2">
+  <link rel="canonical" href="http://Charlesjean.github.io//cn/blog/2014/06/08/swift-learning-1">
   <link href="/cn/favicon.png" rel="icon">
   <link href="/cn/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="" rel="alternate" title="Keep it Simple and Stupid" type="application/atom+xml">
@@ -82,7 +82,7 @@
   
   <header>
     
-      <h1 class="entry-title">深入ObjectiveC Runtime之（二）安装Clang</h1>
+      <h1 class="entry-title">初始Apple Swift语言</h1>
     
     
       <p class="meta">
@@ -98,55 +98,43 @@
   
 
 
-<time datetime="2014-04-03T21:20:48+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2014</time>
+<time datetime="2014-06-08T14:19:04+08:00" pubdate data-updated="true">Jun 8<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>在<a href="http://dj-chen.com/cn/blog/2014/03/26/objectivec-runtime-learning-1/">上一篇</a>中我们通过阅读代码，了解了ObjectiveC的内部对象模型的实现，接下来我们继续通过代码来了解ObjectiveC是如何加载一个类，以及ObjectiveC是如何实现对Category的支持的。</p>
+<div class="entry-content"><p>这一周在iOS开发者之间讨论的最多的话题应该就是apple在WWDC 2014上推出的Swift语言了，微博上充斥着各种对swift语言的讨论，更多的是很快的出现了很多swift语言的学习教程、示例。Swift一出来就这么火是必然的，不仅仅因为它是由Apple推出的语言，更多的是他会影响iOS和OSX开发者今后的工作：</p>
 
-<p>我们需要利用Clang来生成一部分中间代码，帮助我们了解runtime的运行机制，因此我们首先需要安装Clang。</p>
+<ul>
+<li>对于大部分现有的app而言，Objc仍然会是主要的开发语言，但是或许在项目中我们需要引入Swift的一些元素，因此在未来一段时间内iOS和OSX的开发人员不得不同时融汇贯通两种语言。</li>
+<li>对于新的iOS和OSX项目，会有不少开发者直接采用swift语言，毕竟现在看来，Swift是apple今后的方向。</li>
+</ul>
 
-<p>Clang是LLVM的前端，可以用来编译C，C++，ObjectiveC等语言。传统的编译器通常分为三个部分，前端(frontEnd)，优化器(Optimizer)和后端(backEnd)。在编译过程中，前端主要负责词法和语法分析，将源代码转化为抽象语法树；优化器则是在前端的基础上，对得到的中间代码进行优化，使代码更加高效；后端则是将已经优化的中间代码转化为针对各自平台的机器代码。Clang则是以LLVM为后端的一款高效易用，并且与IDE结合很好的编译前端。</p>
 
-<p>我们需要自己下载LLVM与Clang源代码进行编译，步骤如下：</p>
+<p>从上面两点就可以看出，我们确实需要去学习Swift，今后在工作中必然会用到。但是我觉得我们需要理性的去看待一件新事物。</p>
 
-<figure class='code'><figcaption><span>lang=shell </span></figcaption>
-<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p>微博上很多开发者对Swift有盲目的推崇，说它优秀，但是优秀在哪里，我没有看到有关这一点的具体论述。难道紧紧因为Swift具有类似python的语法？仅仅因为Swift引入了像Lambda表达式、类型推断等语法糖？举个例子，Swift是一种类型安全的语言，就是说它不会对类型进行自动的转换，比方说下面的代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm 
-</span><span class='line'>
-</span><span class='line'>cd llvm/tools 
-</span><span class='line'>svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
-</span><span class='line'>cd ../..
-</span><span class='line'>
-</span><span class='line'>cd llvm/projects
-</span><span class='line'>svn co http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
-</span><span class='line'>cd ../..
-</span><span class='line'>
-</span><span class='line'>mkdir build 
-</span><span class='line'>cd build
-</span><span class='line'>../llvm/configure
-</span><span class='line'>make</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span class='line'><span class="n">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span class='line'><span class="n">var</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="c1">//this will not compile,because a is int and b is double</span>
+</span><span class='line'><span class="n">var</span> <span class="n">d</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="c1">//this is correct</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>至此，Clang 安装完毕，你可以使用<code>clang --help</code>来验证是否正确安装。</p>
+<p>有人在称赞swift类型安全的同时，却重载了+操作符，来避免需要专门做类型转换这件事。难道这不是很矛盾吗？既然你认为类型安全是好的，何须按照自己之前的编码习惯去重载操作符呢？</p>
 
-<p>工欲善其事必先利其器，安装Clang主要是为我们今后的学习做准备，我本身对编译器没有特别深入的学习，如果你对Clang感兴趣可以<a href="http://clang.llvm.org/">参考这里</a>。</p>
+<p>每一种语言都有自己的特性，一门编程语言真正的优劣不在于它提供了多么友好的语法，不在于它提供了多少的语法糖，而应该通过它在大型项目中的表现，包括大型代码的组织，对OO各种特性的支持，对项目中各种模式的支持等。而这些只有通过在大型项目中的实践，我们才能够得到结论。因此个人认为现在一窝蜂的说Swift是好是坏，完全没有意义，大部分说法都是开发者根据自己对某一特性的喜好得出的。</p>
+
+<p>再者就是对于Swift的学习，网上已经有了很多的教程，示例，我个人不推荐大家去读这些教程，除非是WWDC中相应的session，其他的在如此快的时间推出的教程毫无疑问是不负责任的，因为即使作者自己也没有在实践中体验过Swift的特性，误人子弟的可能性倒是不小。官方推出的“The Swift Programming Language”应该作为当前学习Swift的教材，书的内容非常详细基础，却涉及到了Swift的各个方面，对于有开发经验的人来说，1天多的时间就可以将这本教材通读。</p>
+
+<p>C++语言发展至今，经过了C++委员会的多次修改，每一个语言特性的增加或者改变都是经过深思熟虑的，都有文档规范为依据；ObjectiveC也经过了apple的产品和众多的app的验证，可以说是一门不错的开发语言；Swift的出现究竟是基于什么样的考虑，它的这些特性又是通过了怎样的验证，我们暂时不得而知，而这些需要我们开发者在今后的工作中去亲自体验。</p>
 </div>
 
 
@@ -169,12 +157,12 @@
   
 
 
-<time datetime="2014-04-03T21:20:48+08:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2014</time>
+<time datetime="2014-06-08T14:19:04+08:00" pubdate data-updated="true">Jun 8<span>th</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/cn/blog/categories/objectivec/'>ObjectiveC</a>
+    <a class='category' href='/cn/blog/categories/ios/'>iOS</a>
   
 </span>
 
@@ -213,10 +201,8 @@ var jiathis_config = {data_track_clickback:'true'};
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/cn/blog/2014/03/30/android-statelistdrawable-and-colorstatelist/" title="Previous Post: Android通过代码设置控件点击时颜色变化">&laquo; Android通过代码设置控件点击时颜色变化</a>
+        <a class="basic-alignment left" href="/cn/blog/2014/05/26/android-art-vs-dalvik/" title="Previous Post: Android ART 与 Dalvik虚拟机比较">&laquo; Android ART 与 Dalvik虚拟机比较</a>
       
-      
-        <a class="basic-alignment right" href="/cn/blog/2014/04/09/objectivec-runtime-learning-3/" title="Next Post: 深入ObjectiveC Runtime之(三)NSObject类与NSObject接口">深入ObjectiveC Runtime之(三)NSObject类与NSObject接口 &raquo;</a>
       
     </p>
   </footer>

@@ -9,7 +9,7 @@
   <meta name="author" content="Duanjin Chen">
 
   
-  <meta name="description" content="长久以来Android给人们的印象都是反应速度慢，不够流畅，这也是我之前对android的印象，在接触了Android4.4、从事了android的开发后，我觉得Android之所以给人们不够流畅的原因有以下几点： 与iOS不同的是，Android手机型号众多，配置更是各种各样， &hellip;">
+  <meta name="description" content="这一周在iOS开发者之间讨论的最多的话题应该就是apple在WWDC 2014上推出的Swift语言了，微博上充斥着各种对swift语言的讨论，更多的是很快的出现了很多swift语言的学习教程、示例。Swift一出来就这么火是必然的，不仅仅因为它是由Apple推出的语言， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,71 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/cn/blog/2014/06/08/swift-learning-1/">初始Apple Swift语言</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-08T14:19:04+08:00" pubdate data-updated="true">Jun 8<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这一周在iOS开发者之间讨论的最多的话题应该就是apple在WWDC 2014上推出的Swift语言了，微博上充斥着各种对swift语言的讨论，更多的是很快的出现了很多swift语言的学习教程、示例。Swift一出来就这么火是必然的，不仅仅因为它是由Apple推出的语言，更多的是他会影响iOS和OSX开发者今后的工作：</p>
+
+<ul>
+<li>对于大部分现有的app而言，Objc仍然会是主要的开发语言，但是或许在项目中我们需要引入Swift的一些元素，因此在未来一段时间内iOS和OSX的开发人员不得不同时融汇贯通两种语言。</li>
+<li>对于新的iOS和OSX项目，会有不少开发者直接采用swift语言，毕竟现在看来，Swift是apple今后的方向。</li>
+</ul>
+
+
+<p>从上面两点就可以看出，我们确实需要去学习Swift，今后在工作中必然会用到。但是我觉得我们需要理性的去看待一件新事物。</p>
+
+<p>微博上很多开发者对Swift有盲目的推崇，说它优秀，但是优秀在哪里，我没有看到有关这一点的具体论述。难道紧紧因为Swift具有类似python的语法？仅仅因为Swift引入了像Lambda表达式、类型推断等语法糖？举个例子，Swift是一种类型安全的语言，就是说它不会对类型进行自动的转换，比方说下面的代码：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="n">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span class='line'><span class="n">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span class='line'><span class="n">var</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="c1">//this will not compile,because a is int and b is double</span>
+</span><span class='line'><span class="n">var</span> <span class="n">d</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="c1">//this is correct</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有人在称赞swift类型安全的同时，却重载了+操作符，来避免需要专门做类型转换这件事。难道这不是很矛盾吗？既然你认为类型安全是好的，何须按照自己之前的编码习惯去重载操作符呢？</p>
+
+<p>每一种语言都有自己的特性，一门编程语言真正的优劣不在于它提供了多么友好的语法，不在于它提供了多少的语法糖，而应该通过它在大型项目中的表现，包括大型代码的组织，对OO各种特性的支持，对项目中各种模式的支持等。而这些只有通过在大型项目中的实践，我们才能够得到结论。因此个人认为现在一窝蜂的说Swift是好是坏，完全没有意义，大部分说法都是开发者根据自己对某一特性的喜好得出的。</p>
+
+<p>再者就是对于Swift的学习，网上已经有了很多的教程，示例，我个人不推荐大家去读这些教程，除非是WWDC中相应的session，其他的在如此快的时间推出的教程毫无疑问是不负责任的，因为即使作者自己也没有在实践中体验过Swift的特性，误人子弟的可能性倒是不小。官方推出的“The Swift Programming Language”应该作为当前学习Swift的教材，书的内容非常详细基础，却涉及到了Swift的各个方面，对于有开发经验的人来说，1天多的时间就可以将这本教材通读。</p>
+
+<p>C++语言发展至今，经过了C++委员会的多次修改，每一个语言特性的增加或者改变都是经过深思熟虑的，都有文档规范为依据；ObjectiveC也经过了apple的产品和众多的app的验证，可以说是一门不错的开发语言；Swift的出现究竟是基于什么样的考虑，它的这些特性又是通过了怎样的验证，我们暂时不得而知，而这些需要我们开发者在今后的工作中去亲自体验。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1507,126 +1572,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/cn/blog/2014/04/09/objectivec-runtime-learning-3/">深入ObjectiveC Runtime之(三)NSObject类与NSObject接口</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-04-09T20:05:43+08:00" pubdate data-updated="true">Apr 9<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在学习ObjectiveC Runtime代码是你会发现，在系统中除了一个名为NSObject的类之外，还存在一个同样名字为NSObject的接口（Protocol），这不禁让我们有疑问，NSObject接口存在的原因是什么，同样的名字难道不会有冲突吗？</p>
-
-<p>我们先看一下接口 NSObject的代码</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@protocol</span> <span class="nc">NSObject</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isEqual:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">NSUInteger</span><span class="p">)</span><span class="nf">hash</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nf">superclass</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nf">class</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">self</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="k">struct</span> <span class="n">_NSZone</span> <span class="o">*</span><span class="p">)</span><span class="nf">zone</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">performSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">performSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span> <span class="nf">withObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">performSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span> <span class="nf">withObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object1</span> <span class="nf">withObject:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">object2</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isProxy</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isKindOfClass:</span><span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nv">aClass</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">isMemberOfClass:</span><span class="p">(</span><span class="n">Class</span><span class="p">)</span><span class="nv">aClass</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">conformsToProtocol:</span><span class="p">(</span><span class="n">Protocol</span> <span class="o">*</span><span class="p">)</span><span class="nv">aProtocol</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nf">respondsToSelector:</span><span class="p">(</span><span class="kt">SEL</span><span class="p">)</span><span class="nv">aSelector</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">retain</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">oneway</span> <span class="kt">void</span><span class="p">)</span><span class="nf">release</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nf">autorelease</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">NSUInteger</span><span class="p">)</span><span class="nf">retainCount</span> <span class="n">OBJC_ARC_UNAVAILABLE</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">-</span> <span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">description</span><span class="p">;</span>
-</span><span class='line'><span class="k">@optional</span>
-</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="n">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">debugDescription</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">@end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>我们平时使用的runtime类型判断接口，以及<code>performSelector</code>等都定义在以NSObject为名的Protocol当中。这些方法在我们平时的编程过程中被大量使用，基本上所有的类都可以respond to这些方法，而我们的类都是继承自NSObject的，他们为什么会有NSObject Protocol当中声明的方法呢，唯一的解释就是<code>Class NSObject 实现了 NSObject Protocol</code>，在runtime的代码中我们也可以得到印证</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='objc'><span class='line'><span class="k">@interface</span> <span class="nc">NSObject</span> <span class="o">&lt;</span><span class="n">NSObject</span><span class="o">&gt;</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">Class</span> <span class="n">isa</span>  <span class="n">OBJC_ISA_AVAILABILITY</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>实际上在ObjectiveC中，interface和protocol的名字是可以相同的，因为在语言中不存在任何可以产生歧义的语法，也就是说interface和protocol使用于完全不同的语法环境，因此可以有相同的名字。</p>
-
-<p>我们还可以进一步思考NSObject Protocol存在的必要性。在JAVA中，所有的类都是java.lang.Object的子类（Object是唯一的ROOT Class），而ObjectiveC中并不是所有的类都是NSObject的子类（有些类继承自NSProxy而不是NSObject）。因此在ObjectiveC中，为了给所有的类提供某些通用的接口，就必须保证所有的ROOT Class，都去实现某一个Protocol，NSObject Protocol就因此诞生，即<code>所有的root class，包括NSObject和NSProxy都会实现NSObject Protocol</code>， 我想这才是NSObject Protocol存在的根本原因。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/cn/blog/page/2/">&larr; 前一页</a>
@@ -1644,12 +1589,16 @@
 <li class='category'><a href='/cn/blog/categories/c-plus-plus/'>C_Plus_Plus(3)</a></li>
 <li class='category'><a href='/cn/blog/categories/objectivec/'>ObjectiveC(4)</a></li>
 <li class='category'><a href='/cn/blog/categories/octopress/'>Octopress(1)</a></li>
-<li class='category'><a href='/cn/blog/categories/ios/'>iOS(2)</a></li>
+<li class='category'><a href='/cn/blog/categories/ios/'>iOS(3)</a></li>
 
   </ul>
   </section><section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/cn/blog/2014/06/08/swift-learning-1/">初始Apple Swift语言</a>
+      </li>
     
       <li class="post">
         <a href="/cn/blog/2014/05/26/android-art-vs-dalvik/">Android ART 与 Dalvik虚拟机比较</a>
@@ -1665,10 +1614,6 @@
     
       <li class="post">
         <a href="/cn/blog/2014/05/17/c-plus-plus-11-new-feature/">C++11 常用新语言特性总结</a>
-      </li>
-    
-      <li class="post">
-        <a href="/cn/blog/2014/05/02/core-animation/">iOS中Core Animation的使用</a>
       </li>
     
   </ul>
